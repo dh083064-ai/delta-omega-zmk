@@ -1,0 +1,10 @@
+---
+include:
+  - board: seeeduino_xiao_ble
+    shield: delta_omega_left
+
+  - board: seeeduino_xiao_ble
+    shield: delta_omega_right
+
+  - board: seeeduino_xiao_ble
+    shield: settings_reset
