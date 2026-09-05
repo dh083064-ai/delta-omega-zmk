@@ -197,3 +197,20 @@ release = 2 ms
 ```
 
 These values override per-driver debounce settings.
+
+
+## Latest tuning
+
+### Base layer LED
+KOR / layer 0 is now White.
+
+### Home-row mods
+Typing HRMs were softened from the aggressive setup:
+
+```text
+old: hold-preferred + require-prior-idle 80 ms
+new: balanced       + require-prior-idle 120 ms
+```
+
+This should reduce accidental modifier activation while still being faster
+than the older 150 ms setup.
