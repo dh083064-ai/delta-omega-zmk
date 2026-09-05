@@ -1,0 +1,6 @@
+name: delta-omega-user-behaviors
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    dts_root: .

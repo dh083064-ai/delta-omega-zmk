@@ -1,0 +1,18 @@
+menu "Delta Omega User Behaviors"
+
+config ZMK_RAPID_FIRE_MIN_INTERVAL_MS
+    int "Rapid-fire minimum interval in milliseconds"
+    default 20
+    range 5 1000
+
+config ZMK_RAPID_FIRE_MAX_INTERVAL_MS
+    int "Rapid-fire maximum interval in milliseconds"
+    default 26
+    range 5 1000
+
+config ZMK_RAPID_FIRE_TAP_MS
+    int "Rapid-fire virtual tap duration in milliseconds"
+    default 1
+    range 1 100
+
+endmenu

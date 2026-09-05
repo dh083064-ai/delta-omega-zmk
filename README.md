@@ -1,171 +1,121 @@
-# Delta Omega ZMK — KOR / Gallium / MAPLE
+# Delta Omega ZMK — simplified 7-layer build
 
-Ready-to-drop ZMK user-config files for the uploaded Delta Omega setup.
+## Layer map
 
-## Hardware/build assumptions
-
-- Delta Omega 34-key 3x5+2 split
-- `seeeduino_xiao_ble`
-- `delta_omega_left` / `delta_omega_right`
-- ZMK pinned to `v0.3`
-- existing custom Delta Omega module remote preserved
-- `zmk-rgbled-widget` pinned to `v0.3`
-- NKRO enabled
-- normal firmware builds do **not** enable USB logging
-
-## Repository layout
-
-```text
-.
-├── .github/
-│   └── workflows/
-│       └── build.yml
-├── build.yaml
-└── config/
-    ├── delta_omega.conf
-    ├── delta_omega.keymap
-    └── west.yml
-```
-
-## Layers
-
-| # | Layer | Purpose |
+| # | Layer | Access |
 |---|---|---|
-| 0 | KOR | Korean QWERTY physical layout + HRM |
-| 1 | ENG | Gallium Colstag + HRM |
-| 2 | NAV | typing navigation |
-| 3 | NUM | normal number-row HID codes |
-| 4 | FUN | F1-F12 + editing/navigation |
-| 5 | UTIL | KOR/ENG/MAPLE switching + 한/영 |
-| 6 | MAPLE | game layer: 26 alphabet + direct arrows |
-| 7 | MUTIL | Maple numbers/F-keys/editing |
-| 8 | SYM | conditional NUM+FUN symbol layer |
+| 0 | KOR | Korean QWERTY base |
+| 1 | ENG | Gallium Colstag base |
+| 2 | NAV_MOUSE | hold Space |
+| 3 | NUM_FUN | hold Enter |
+| 4 | SYM | hold Backspace |
+| 5 | MAPLE | Esc + Enter combo toggles ON/OFF |
+| 6 | MUTIL | hold Enter while MAPLE is active |
 
-## Thumb order
+## Thumbs
 
-The physical thumb order is preserved as requested:
+Physical order stays:
 
 ```text
-left -> right
-ESC | SPACE || BACKSPACE | ENTER
+Esc | Space || Backspace | Enter
 ```
 
-### KOR / ENG
+Typing layers:
 
 ```text
-tap:  ESC       SPACE       BACKSPACE      ENTER
-hold: UTIL      NAV         FUN            NUM
+Esc tap / hold = switch KOR<->ENG
+Space tap / hold = NAV_MOUSE
+Backspace tap / hold = SYM
+Enter tap / hold = NUM_FUN
 ```
 
-Holding `NUM + FUN` together activates `SYM`.
+Backspace also has `quick-tap-ms = 150`, so tap then immediately hold gives
+normal OS Backspace auto-repeat instead of entering SYM.
 
-Backspace uses a custom hold-tap (`bsp_lt`) instead of the plain `&lt`:
-tap it once, then press-and-hold again within 150ms and that hold repeats
-Backspace via normal OS auto-repeat instead of activating FUN. A single
-continuous hold from rest (no prior tap) still resolves to FUN after
-200ms, same as the other three thumbs.
-
-### MAPLE
-
-Thumb **tap outputs remain the same**:
+## Combos
 
 ```text
-ESC | SPACE || BACKSPACE | ENTER
+physical K + L = LANG_HANGEUL (KOR/ENG only)
+Esc + Enter = MAPLE toggle (KOR/ENG/MAPLE)
 ```
 
-To fit Ctrl/Alt/M-UTIL without deleting any of the 26 letters or the four
-direct arrow keys:
+The K+L combo is position-based: positions 17+18, i.e. the physical K/L spots
+on the QWERTY layout.
 
+## NAV_MOUSE
+
+Right top:
 ```text
-hold ESC       -> Ctrl
-hold BACKSPACE -> Alt
-hold ENTER     -> M-UTIL
-SPACE          -> plain Space
+mouse-left  mouse-down  mouse-up  mouse-right  Del
 ```
 
-Only these thumbs are dual-role in MAPLE. The 30 main game keys contain no
-home-row mods.
-
-## MAPLE direct layout
-
+Right home:
 ```text
-Q W E R T   Y U ↑ O P
-A S D F G   H ← ↓ → I
-Z X C V B   N M J K L
+Left  Down  Up  Right  Del
 ```
 
-This keeps all A-Z letters while moving I/J/K/L to the former punctuation
-positions and using the original I/J/K/L area as an inverted-T arrow cluster.
+Right bottom:
+```text
+LeftClick  RightClick  MiddleClick  ScrollUp  ScrollDown
+```
 
-## M-UTIL
+`CONFIG_ZMK_POINTING=y` is enabled. Because this changes the HID descriptor,
+remove/forget the Bluetooth keyboard and pair it again after flashing.
 
-Hold the MAPLE Enter thumb:
+## NUM_FUN
 
 ```text
-1  2  3  4  5    6  7  8  9  0
 F1 F2 F3 F4 F5   F6 F7 F8 F9 F10
-F11 F12 KOR ENG INS   HOME END PGUP PGDN DEL
-
-thumbs while M-UTIL:
-Shift | Ctrl | Alt | [Enter is being held]
+1  2  3  4  5    6  7  8  9  0
+F11 F12 Del Ins Home   End PgUp PgDn PrtSc Caps
 ```
 
-Numbers are normal number-row HID usages (`N1` ... `N0`), not keypad usages.
+## SYM
 
-## Typing HRM
+Dedicated symbol layer; no conditional layer is used.
 
-GACS mirrored:
+## MAPLE rapid-fire
+
+Physical hold causes repeated HID taps with a fresh random interval of 20–26 ms each cycle.
 
 ```text
-left:  GUI  ALT  CTRL SHIFT
-right: SHIFT CTRL ALT GUI
+MAPLE: Q W E U H N B G X C
+MUTIL: 1 2 3 '
 ```
 
-Settings:
+## Build layout
+
+The repository is also a Zephyr module through `config/zephyr/module.yml`.
+The custom rapid-fire behavior lives under `config/src/` so it is discovered
+through the existing `self.path: config` west manifest.
+
+Build with the included GitHub Actions workflow.
+
+Static structure checks were performed here, but the first GitHub Actions run
+is the final compiler/API check for the custom C behavior.
+
+
+## Rapid-fire random jitter
+
+This revision replaces the fixed 20 ms repeat interval with a fresh randomized
+delay for every repeated tap:
 
 ```text
-flavor = balanced
-tapping-term = 200 ms
-quick-tap = 175 ms
-require-prior-idle = 150 ms
-opposite-hand positional hold triggers
-hold-trigger-on-release
+minimum interval = 20 ms
+maximum interval = 26 ms
+tap duration     = 1 ms
 ```
 
-## Switching modes
+Examples of successive intervals might be:
 
-From KOR/ENG, hold `Esc` for UTIL:
+```text
+20 ms, 25 ms, 22 ms, 26 ms, 21 ms, ...
+```
 
-- `Q` position -> KOR
-- `W` position -> ENG
-- `E` position -> MAPLE
-- `R` position -> `LANG_HANGEUL`
+The random value is regenerated for each repeat while the physical key remains
+held. Rapid-fire targets remain unchanged:
 
-From MAPLE, hold Enter for M-UTIL:
-
-- bottom-row `C` physical position -> KOR
-- bottom-row `V` physical position -> ENG
-
-## Build
-
-1. Put the extracted files at the root of a GitHub repository.
-2. Push to GitHub.
-3. Open **Actions**.
-4. Run/wait for **Build ZMK firmware**.
-5. Download the firmware artifact.
-6. Flash the left and right `.uf2` files to their matching halves.
-
-`settings_reset` is included only as a recovery image for clearing stored
-settings/BLE bonding when needed.
-
-## NKRO / BLE note
-
-`CONFIG_ZMK_HID_REPORT_TYPE_NKRO=y` is enabled. Because HID descriptor
-changes can be cached by BLE hosts, if keys behave strangely after the first
-NKRO flash, forget the keyboard on the host and pair it again.
-
-## Important
-
-These files were statically checked for 34 bindings per layer and for required
-features. A complete ZMK/Zephyr compile cannot be performed in this chat
-runtime; the included GitHub Actions workflow is the final compiler check.
+```text
+MAPLE: Q W E U H N B G X C
+MUTIL: 1 2 3 '
+```
