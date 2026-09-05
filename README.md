@@ -140,15 +140,6 @@ From MAPLE, hold Enter for M-UTIL:
 - bottom-row `C` physical position -> KOR
 - bottom-row `V` physical position -> ENG
 
-## ZMK Studio
-
-`CONFIG_ZMK_STUDIO=y` is enabled. Connect over USB at https://zmk.studio.
-Unlock combo: hold `Esc` (UTIL) and tap the `G` position on the left hand.
-
-If you previously ran an out-of-box demo firmware with Studio, its saved
-keymap lives in the settings partition and overrides a freshly flashed
-keymap. Flash `settings_reset` once to clear it before flashing this build.
-
 ## Build
 
 1. Put the extracted files at the root of a GitHub repository.
