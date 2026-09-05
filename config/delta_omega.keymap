@@ -20,10 +20,10 @@
         hml: home_row_mod_left {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
-            flavor = "balanced";
+            flavor = "hold-preferred";
             tapping-term-ms = <280>;
             quick-tap-ms = <175>;
-            require-prior-idle-ms = <150>;
+            require-prior-idle-ms = <80>;
             bindings = <&kp>, <&kp>;
             hold-trigger-key-positions = <
                 5 6 7 8 9
@@ -37,10 +37,10 @@
         hmr: home_row_mod_right {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
-            flavor = "balanced";
+            flavor = "hold-preferred";
             tapping-term-ms = <280>;
             quick-tap-ms = <175>;
-            require-prior-idle-ms = <150>;
+            require-prior-idle-ms = <80>;
             bindings = <&kp>, <&kp>;
             hold-trigger-key-positions = <
                 0 1 2 3 4
@@ -81,7 +81,7 @@
             #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <200>;
-            quick-tap-ms = <150>;
+            quick-tap-ms = <250>;
             bindings = <&mo>, <&kp>;
         };
 
@@ -109,10 +109,10 @@
 
         /* Existing K+L physical-position combo for Korean/English IME toggle. */
         combo_hangeul {
-            timeout-ms = <55>;
+            timeout-ms = <110>;
             key-positions = <17 18>;
-            layers = <KOR ENG>;
-            bindings = <&kp LANG1>;
+            layers = <0 1>;
+            bindings = <&kp RALT>;
         };
 
         /* Outer thumbs: game mode ON/OFF. */

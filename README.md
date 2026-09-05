@@ -119,3 +119,81 @@ held. Rapid-fire targets remain unchanged:
 MAPLE: Q W E U H N B G X C
 MUTIL: 1 2 3 '
 ```
+
+
+---
+
+## HRM / Backspace / Korean toggle tuning
+
+### Faster home-row modifiers
+
+Both HRM behaviors now use:
+
+```text
+flavor = hold-preferred
+require-prior-idle-ms = 80
+```
+
+The opposite-hand positional trigger lists are retained. This means the
+recommended fast shortcut pattern is to use the modifier from the opposite
+hand. Example on KOR/QWERTY:
+
+```text
+Ctrl+A = hold physical K (right-hand RCTRL HRM) + tap A
+Ctrl+S = hold physical K + tap S
+Shift+A = hold physical J (right-hand RSHIFT HRM) + tap A
+```
+
+Using left D(Ctrl) + left A is same-hand and intentionally does not receive the
+instant positional trigger; it may need to cross the tapping term. This protects
+normal same-hand rolls from accidental modifiers.
+
+### Backspace repeat
+
+Backspace quick-tap window is now 250 ms.
+
+```text
+tap Backspace -> delete once
+tap, then press-and-hold again within 250 ms -> normal held Backspace / OS repeat
+plain hold without the preceding tap -> SYM layer
+```
+
+### Korean/English IME combo
+
+Physical K+L remains the combo, active only on layer 0/1 (KOR/ENG), but the
+output is now Right Alt (`RALT`) instead of the dedicated `LANG_HANGEUL` HID
+usage. Combo timeout is 110 ms.
+
+This is intended for Windows Korean IME setups where Right Alt acts as the
+Han/Eng toggle.
+
+
+## Persistent layer LED colors
+
+The RGB LED now shows a steady color for the highest active layer instead of
+the old blue layer-change blink sequence.
+
+```text
+KOR        (0) = Green
+ENG        (1) = Yellow
+NAV_MOUSE  (2) = Cyan
+NUM_FUN    (3) = Magenta
+SYM        (4) = Red
+MAPLE      (5) = Blue
+MUTIL      (6) = White
+```
+
+Color IDs follow zmk-rgbled-widget:
+0 Black, 1 Red, 2 Green, 3 Yellow, 4 Blue, 5 Magenta, 6 Cyan, 7 White.
+
+
+## Debounce
+
+Global key debounce is explicitly set to:
+
+```text
+press   = 2 ms
+release = 2 ms
+```
+
+These values override per-driver debounce settings.
