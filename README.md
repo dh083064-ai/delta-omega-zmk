@@ -59,6 +59,12 @@ hold: UTIL      NAV         FUN            NUM
 
 Holding `NUM + FUN` together activates `SYM`.
 
+Backspace uses a custom hold-tap (`bsp_lt`) instead of the plain `&lt`:
+tap it once, then press-and-hold again within 150ms and that hold repeats
+Backspace via normal OS auto-repeat instead of activating FUN. A single
+continuous hold from rest (no prior tap) still resolves to FUN after
+200ms, same as the other three thumbs.
+
 ### MAPLE
 
 Thumb **tap outputs remain the same**:

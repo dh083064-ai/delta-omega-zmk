@@ -87,6 +87,22 @@
             tapping-term-ms = <100>;
             bindings = <&mo>, <&kp>;
         };
+
+        /*
+         * Backspace layer-tap with quick-tap: tap once, then press-and-hold
+         * again within quick-tap-ms and the second press is treated as a
+         * held tap (repeats via normal OS auto-repeat) instead of resolving
+         * to a FUN-layer hold. A single continuous hold from rest still
+         * resolves to FUN after tapping-term-ms, same as before.
+         */
+        bsp_lt: backspace_layer_tap {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <150>;
+            bindings = <&mo>, <&kp>;
+        };
     };
 
     keymap {
@@ -107,7 +123,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                     &lt UTIL ESC   &lt NAV SPACE   &lt FUN BACKSPACE   &lt NUM ENTER
+                                                     &lt UTIL ESC   &lt NAV SPACE   &bsp_lt FUN BACKSPACE   &lt NUM ENTER
             >;
         };
 
@@ -125,7 +141,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                     &lt UTIL ESC   &lt NAV SPACE   &lt FUN BACKSPACE   &lt NUM ENTER
+                                                     &lt UTIL ESC   &lt NAV SPACE   &bsp_lt FUN BACKSPACE   &lt NUM ENTER
             >;
         };
 
