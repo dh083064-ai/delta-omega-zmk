@@ -12,10 +12,6 @@
 #define SYM    8
 
 / {
-    chosen {
-        zmk,physical-layout = &physical_layout0;
-    };
-
     behaviors {
         /*
          * GACS mirrored home-row mods for typing layers only.
