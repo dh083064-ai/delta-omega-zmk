@@ -175,7 +175,7 @@
         UTIL {
             bindings = <
 &to KOR        &to ENG        &to MAPLE       &kp LANG1        &kp CAPS        &kp ESC         &kp TAB         &kp INS         &kp DEL         &kp PSCRN
-&kp LGUI       &kp LALT       &kp LCTRL       &kp LSHIFT       &trans          &kp LEFT        &kp DOWN        &kp UP          &kp RIGHT       &trans
+&kp LGUI       &kp LALT       &kp LCTRL       &kp LSHIFT       &studio_unlock  &kp LEFT        &kp DOWN        &kp UP          &kp RIGHT       &trans
 &trans         &trans         &trans          &trans           &trans          &kp HOME        &kp PG_DN       &kp PG_UP       &kp END         &trans
                                                      &trans         &trans          &trans          &trans
             >;
