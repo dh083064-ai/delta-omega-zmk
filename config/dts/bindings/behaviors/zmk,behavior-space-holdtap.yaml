@@ -1,0 +1,5 @@
+description: Space hold-tap with chatter-tolerant tap debounce and hold release-grace
+
+compatible: "zmk,behavior-space-holdtap"
+
+include: two_param.yaml

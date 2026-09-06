@@ -28,4 +28,18 @@ config ZMK_DEBOUNCE_TAP_MS
     default 5
     range 1 100
 
+config ZMK_SPACE_HT_TAPPING_TERM_MS
+    int "Space hold-tap: tapping term in milliseconds"
+    default 190
+    range 50 500
+
+config ZMK_SPACE_HT_RELEASE_GRACE_MS
+    int "Space hold-tap: grace period after release before deactivating the hold layer"
+    default 40
+    range 5 200
+    help
+      If the key is pressed again within this window after releasing
+      while the hold layer is active, the release is treated as switch
+      chatter and the hold continues uninterrupted.
+
 endmenu
