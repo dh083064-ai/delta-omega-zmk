@@ -93,8 +93,8 @@ static const struct behavior_driver_api behavior_debounce_tap_driver_api = {
     .binding_released = on_keymap_binding_released,
 };
 
-#define DT_INST(n)                                                                                \
+#define DBTAP_INST(n)                                                                             \
     BEHAVIOR_DT_INST_DEFINE(n, dt_init, NULL, NULL, NULL, POST_KERNEL,                           \
                             CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &behavior_debounce_tap_driver_api);
 
-DT_INST_FOREACH_STATUS_OKAY(DT_INST)
+DT_INST_FOREACH_STATUS_OKAY(DBTAP_INST)
