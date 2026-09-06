@@ -66,7 +66,6 @@
             #binding-cells = <2>;
             flavor = "balanced";
             tapping-term-ms = <190>;
-            quick-tap-ms = <140>;
             bindings = <&mo>, <&kp>;
         };
 
