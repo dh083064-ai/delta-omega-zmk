@@ -15,4 +15,17 @@ config ZMK_RAPID_FIRE_TAP_MS
     default 1
     range 1 100
 
+config ZMK_DEBOUNCE_TAP_COOLDOWN_MS
+    int "Debounce-tap: minimum gap between fires on the same position"
+    default 30
+    range 5 200
+    help
+      A repeat trigger on the same position within this window of the
+      last one is treated as switch chatter and ignored.
+
+config ZMK_DEBOUNCE_TAP_MS
+    int "Debounce-tap: virtual tap duration in milliseconds"
+    default 5
+    range 1 100
+
 endmenu

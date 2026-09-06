@@ -1,0 +1,5 @@
+description: Debounce-tap key behavior (single bounded pulse with a per-position cooldown)
+
+compatible: "zmk,behavior-debounce-tap"
+
+include: one_param.yaml
