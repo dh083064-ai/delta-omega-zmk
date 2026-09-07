@@ -42,4 +42,22 @@ config ZMK_SPACE_HT_RELEASE_GRACE_MS
       while the hold layer is active, the release is treated as switch
       chatter and the hold continues uninterrupted.
 
+config ZMK_BSPC_SPECIAL_HOLD_MS
+    int "Backspace special: hold threshold in milliseconds"
+    default 200
+    range 50 500
+    help
+      How long a press must be held (from a cold start, or on the
+      follow-up press after a tap) before it resolves as a hold
+      (Shift, or Backspace-repeat) instead of a tap.
+
+config ZMK_BSPC_SPECIAL_FOLLOWUP_MS
+    int "Backspace special: follow-up press window in milliseconds"
+    default 200
+    range 50 500
+    help
+      After the first tap fires a Backspace, a second press within this
+      window is treated as a follow-up (Caps Word or Backspace-repeat)
+      rather than an unrelated new tap.
+
 endmenu

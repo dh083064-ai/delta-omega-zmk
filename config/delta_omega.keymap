@@ -1,4 +1,5 @@
 #include <behaviors.dtsi>
+#include <behaviors/num_word.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/modifiers.h>
 #include <dt-bindings/zmk/pointing.h>
@@ -26,19 +27,21 @@
  *   row0: 0-4 (left) 5-9 (right)
  *   row1: 10-14 (left) 15-19 (right)
  *   row2: 20-24 (left) 25-29 (right)
- *   thumbs: 30(SPACE) 31(ENTER) 32(BACKSPACE) 33(MAGIC_SHIFT)
+ *   thumbs: 30(SMART_NUM) 31(SPACE) 32(BACKSPACE) 33(ENTER)
  *
- * Thumbs replace the old Esc/Space/Backspace/Enter arrangement: Space
- * (Num-hold) and Enter (Fn-hold) both on the left, Backspace (Nav-hold) and
- * Magic Shift on the right (urob's Smart Num felt ambiguous in practice -
- * swapped for a plain layer-tap, and Space/Backspace hold Num/Nav rather
- * than urob's Nav/Num). Esc is still reachable via combo_esc below. The
- * KOR<->ENG switch (previously the hold-action on the Esc thumb) moves to
- * a hold on the same Esc combo.
- *
- * The chatter-prone physical switch is thumb position 31 (originally
- * Space's spot) - space_ht's release-grace protection follows THAT switch,
- * so it's now on Enter/Fn-hold rather than Space/Nav-hold.
+ * Final personalized thumb set - urob's features are ported for their
+ * behavior, not to force his thumb arrangement:
+ *   - Smart Num (urob): tap = num-word, hold = NUM, double-tap = sticky NUM.
+ *   - Space: tap = Space, hold = FN. Position 31 is the chatter-prone
+ *     physical switch, so this uses space_ht (release-grace protection)
+ *     rather than a plain &lt, same as always.
+ *   - Backspace: a from-scratch 4-function custom behavior (bspc_special) -
+ *     tap = one Bspc, hold-from-cold = Shift, tap-then-tap = Caps Word,
+ *     tap-then-hold = Bspc held down (OS-level key repeat).
+ *   - Enter: tap = Enter, hold = NAV.
+ * Esc is off the thumbs entirely - combo_esc_kor/combo_esc_eng/combo_esc
+ * below are its only access, with the KOR<->ENG switch (bsw) as the hold
+ * action on the KOR/ENG combos.
  */
 
 &sk {
@@ -129,6 +132,12 @@
         #binding-cells = <2>;
     };
 
+    bspc_special: bspc_special {
+        compatible = "zmk,behavior-bspc-special";
+        #binding-cells = <0>;
+        bindings = <&caps_word>;
+    };
+
     zip_scroll_scaler: zip_scroll_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -211,8 +220,8 @@
         };
 
         /*
-         * Tap Esc, hold to switch KOR <-> ENG. Now lives on combo_esc
-         * (was on the Esc thumb before Magic Shift/Backspace took over).
+         * Tap Esc, hold to switch KOR <-> ENG. Lives only on
+         * combo_esc_kor/combo_esc_eng below - no thumb key for it.
          */
         bsw: base_switch {
             compatible = "zmk,behavior-hold-tap";
@@ -347,36 +356,22 @@
         };
 
         /*
-         * Magic Shift: hold = Shift. Tap = sticky-Shift, unless the prior
-         * key was a letter within 350ms, in which case tap repeats that
-         * letter's last output instead (shift_repeat) - Caps Word on
-         * Shift+tap.
+         * Tap: num-word (auto-off after one key) | Double-tap: sticky NUM
+         * layer | Hold: NUM layer.
          */
-        magic_shift: magic_shift {
+        smart_num: smart_num {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "balanced";
             tapping-term-ms = <200>;
             quick-tap-ms = <175>;
-            bindings = <&kp>, <&magic_shift_tap>;
+            bindings = <&mo>, <&num_dance>;
         };
-        magic_shift_tap: magic_shift_tap {
-            compatible = "zmk,behavior-mod-morph";
+        num_dance: num_dance {
+            compatible = "zmk,behavior-tap-dance";
             #binding-cells = <0>;
-            bindings = <&shift_repeat>, <&caps_word>;
-            mods = <(MOD_LSFT)>;
-        };
-        shift_repeat: shift_repeat {
-            compatible = "zmk,behavior-adaptive-key";
-            #binding-cells = <0>;
-            bindings = <&sk LSHFT>;
-
-            repeat {
-                trigger-keys = <A B C D E F G H I J K L M N O P Q R S T U V W X Y Z>;
-                bindings = <&key_repeat>;
-                max-prior-idle-ms = <1200>;
-                strict-modifiers;
-            };
+            tapping-term-ms = <200>;
+            bindings = <&num_word NUM>, <&sl NUM>;
         };
 
         /* Sticky shift + leader key, chained via a macro. */
@@ -686,7 +681,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &lt NUM SPACE   &space_ht FN ENTER   &lt NAV BACKSPACE   &magic_shift LSHFT 0
+                                                    &smart_num NUM 0   &space_ht FN SPACE   &bspc_special   &lt NAV ENTER
             >;
         };
 
@@ -696,7 +691,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &lt NUM SPACE   &space_ht FN ENTER   &lt NAV BACKSPACE   &magic_shift LSHFT 0
+                                                    &smart_num NUM 0   &space_ht FN SPACE   &bspc_special   &lt NAV ENTER
             >;
         };
 

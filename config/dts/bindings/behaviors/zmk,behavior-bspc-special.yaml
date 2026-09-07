@@ -1,0 +1,13 @@
+description: >
+  Backspace special: tap = one Bspc, hold-from-cold = Shift,
+  tap-then-tap = Caps Word, tap-then-hold = Bspc held down (OS repeat).
+
+compatible: "zmk,behavior-bspc-special"
+
+include: zero_param.yaml
+
+properties:
+  bindings:
+    type: phandles
+    required: true
+    description: Single entry, the behavior invoked for the tap-then-tap case (Caps Word).
