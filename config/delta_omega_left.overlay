@@ -1,13 +1,16 @@
 /*
  * ESB split-transport radio addresses (kumbung01/zmk-split-esb).
- * Must be identical on both halves - arbitrary values, fine for a single
- * personal board (module's own README example values).
+ * Must be identical on both halves. Randomly generated, unique to this
+ * board - the module's README example values (0xE7.../0xC2...) are
+ * public and shared by anyone who copy-pasted the docs, so using them
+ * risks colliding with another ESB device nearby. The module's own docs
+ * recommend unique addresses for anything beyond a quick test.
  */
 / {
     esb_split {
         compatible = "zmk,esb-split";
-        base-addr-0 = <0xE7 0xE7 0xE7 0xE7>;
-        base-addr-1 = <0xC2 0xC2 0xC2 0xC2>;
-        addr-prefix = <0xE7 0xC2 0xC3 0xC4 0xC5 0xC6 0xC7 0xC8>;
+        base-addr-0 = <0xFB 0x2F 0xAD 0x9E>;
+        base-addr-1 = <0x1C 0x91 0xE8 0xB5>;
+        addr-prefix = <0x5E 0x4B 0x77 0xCA 0xF5 0xFA 0xFF 0x7F>;
     };
 };
