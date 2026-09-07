@@ -8,6 +8,10 @@ manifest:
       url-base: https://github.com/dh083064-ai
     - name: urob
       url-base: https://github.com/urob
+    - name: kumbung01
+      url-base: https://github.com/kumbung01
+    - name: nrfconnect
+      url-base: https://github.com/nrfconnect
 
   projects:
     - name: zmk
@@ -22,6 +26,22 @@ manifest:
     - name: zmk-keyboard-delta-omega
       remote: unspecworks
       revision: main
+
+    # ESB no-dongle split transport experiment, TDMA/FHSS variant
+    # (branch esb-tdma-kumbung01 only - separate from the badjeff-based
+    # esb-no-dongle branch, different module name and Kconfig surface).
+    - name: zmk-split-esb
+      remote: kumbung01
+      revision: main
+    - name: sdk-nrf
+      remote: kumbung01
+      revision: v3.1-branch-tdma-fhss
+      path: nrf
+    - name: nrfxlib
+      remote: nrfconnect
+      revision: v3.1-branch
+      repo-path: sdk-nrfxlib
+      path: nrfxlib
 
     # urob/zmk-config ports: SmartNum, Magic Shift, Smart Mouse, Swapper, Leader.
     - name: zmk-auto-layer
