@@ -349,7 +349,7 @@
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "balanced";
-            tapping-term-ms = <200>;
+            tapping-term-ms = <280>;
             quick-tap-ms = <175>;
             bindings = <&kp>, <&magic_shift_tap>;
         };
@@ -450,10 +450,10 @@
             bindings = <&kp LS(INS)>;
         };
 
-        /* Right top row: backspace/delete. */
+        /* Right home row: backspace (moved here from 6,7 - was J+K's spot) / delete. */
         combo_bspc {
             timeout-ms = <18>;
-            key-positions = <6 7>;
+            key-positions = <16 17>;
             layers = <KOR ENG NAV NUM>;
             bindings = <&kp BSPC>;
         };
@@ -464,28 +464,33 @@
             bindings = <&kp DEL>;
         };
 
-        /* Right home row: parens (base/num) or angle brackets (nav). */
+        /*
+         * Right top row: parens (base/num) or angle brackets (nav) - moved
+         * here (Y+U / U+I) to make room for combo_bspc above. This also
+         * incidentally fixes a pre-existing conflict where combo_rpar and
+         * combo_hangeul both sat on 17,18 with overlapping layers.
+         */
         combo_lpar {
             timeout-ms = <18>;
-            key-positions = <16 17>;
+            key-positions = <5 6>;
             layers = <KOR ENG NUM>;
             bindings = <&lpar_lt>;
         };
         combo_rpar {
             timeout-ms = <18>;
-            key-positions = <17 18>;
+            key-positions = <6 7>;
             layers = <KOR ENG NUM>;
             bindings = <&rpar_gt>;
         };
         combo_lt {
             timeout-ms = <18>;
-            key-positions = <16 17>;
+            key-positions = <5 6>;
             layers = <NAV>;
             bindings = <&kp LT>;
         };
         combo_gt {
             timeout-ms = <18>;
-            key-positions = <17 18>;
+            key-positions = <6 7>;
             layers = <NAV>;
             bindings = <&kp GT>;
         };
