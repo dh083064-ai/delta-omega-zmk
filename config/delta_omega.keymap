@@ -15,6 +15,8 @@
 #define NUM    4
 #define SYS    5
 #define MOUSE  6
+#define GAMING 7
+#define MUTIL  8
 
 /*
  * Ported from urob/zmk-config (github.com/urob/zmk-config), adapted to the
@@ -132,6 +134,11 @@
     space_ht: space_holdtap {
         compatible = "zmk,behavior-space-holdtap";
         #binding-cells = <2>;
+    };
+
+    rf: rapid_fire {
+        compatible = "zmk,behavior-rapid-fire";
+        #binding-cells = <1>;
     };
 
     zip_scroll_scaler: zip_scroll_scaler {
@@ -612,6 +619,18 @@
             layers = <KOR ENG NAV NUM>;
             bindings = <&kp PIPE>;
         };
+
+        /*
+         * Both outer thumbs together: toggle the Gaming layer on/off. Also
+         * active on Gaming itself so the same chord exits it. Deliberately
+         * far-apart positions so it can't fire by accident while typing.
+         */
+        combo_gaming {
+            timeout-ms = <30>;
+            key-positions = <30 33>;
+            layers = <KOR ENG GAMING>;
+            bindings = <&tog GAMING>;
+        };
     };
 
     conditional_layers {
@@ -706,6 +725,39 @@
 &trans         &trans         &trans          &trans           &trans          &msc SCRL_LEFT  &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_RIGHT &msc SCRL_RIGHT
 &trans         &trans         &trans          &trans           &trans          &trans          &mkp LCLK       &mkp MCLK       &mkp RCLK       &trans
                                                     &trans         &trans          &msc SCRL_UP    &msc SCRL_DOWN
+            >;
+        };
+
+        /*
+         * Gaming: fully custom, every cell explicit (no &trans into
+         * KOR/ENG) so HRM and combos can never fire here - only combo_gaming
+         * itself (which lists GAMING in its own layers) is active.
+         * IJKL physical positions carry arrows (I=up, J=left, K=down,
+         * L=right); the alpha letters I/J/K/L that displaced move to
+         * ;/,/./  so they're still reachable. rf = rapid-fire (randomized
+         * hold-to-spam).
+         */
+        GAMING {
+            bindings = <
+&rf Q          &rf W          &rf E           &kp R            &kp T           &kp Y           &rf U           &kp UP          &kp O           &kp P
+&kp A          &kp S          &kp D           &kp F            &rf G           &rf H           &kp LEFT        &kp DOWN        &kp RIGHT       &kp I
+&kp Z          &rf X          &rf C           &kp V            &rf B           &rf N           &kp M           &kp J           &kp K           &kp L
+                                                    &mt_ctrl ESC LCTRL   &kp SPACE   &mt_ctrl BSPC LALT   &lt MUTIL RET
+            >;
+        };
+
+        /*
+         * Gaming util (momentary, hold Gaming's Enter thumb): F-keys/digits
+         * for skill bars. Positions 7/16/17/18 stay &trans (falling through
+         * to Gaming's arrows) instead of F8/7/8/9 - covering them blocked
+         * arrow-key input while this sublayer was held, in the old design.
+         */
+        MUTIL {
+            bindings = <
+&kp F1         &kp F2         &kp F3          &kp F4           &kp F5          &kp F6          &kp F7          &trans          &kp F9          &kp F10
+&rf N1         &rf N2         &rf N3          &kp N4           &kp N5          &kp N6          &trans          &trans          &trans          &kp N0
+&kp F11        &kp F12        &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp FSLH
+                                                    &trans         &trans          &trans          &trans
             >;
         };
     };
