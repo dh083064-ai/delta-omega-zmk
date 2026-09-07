@@ -721,14 +721,16 @@
         };
 
         /*
-         * Num: numpad-style number row with HRM. Right hand mostly unused
-         * (spare capacity for future symbol/util keys).
+         * Num: straight left-to-right 0-9 on the home row (A-position = 0
+         * through ;-position = 9), not urob's numpad layout - your own
+         * preference. HRM kept on the same 8 positions as everywhere else.
+         * Top/bottom rows free for future symbol/util keys.
          */
         NUM {
             bindings = <
-&trans         &kp N7         &kp N8          &kp N9           &trans          &trans          &trans          &trans          &trans          &trans
-&hml LGUI N0    &hml LALT N4   &hml LSHFT N5   &hml LCTRL N6    &trans          &trans          &trans          &trans          &trans          &trans
-&trans         &kp N1         &kp N2          &kp N3           &trans          &trans          &trans          &trans          &trans          &trans
+&trans         &trans         &trans          &trans           &trans          &trans          &trans          &trans          &trans          &trans
+&hml LGUI N0    &hml LALT N1   &hml LCTRL N2   &hml LSHIFT N3   &kp N4          &kp N5          &hmr RSHIFT N6  &hmr RCTRL N7   &hmr RALT N8    &hmr RGUI N9
+&trans         &trans         &trans          &trans           &trans          &trans          &trans          &trans          &trans          &trans
                                                     &trans         &trans          &trans          &trans
             >;
         };
