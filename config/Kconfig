@@ -49,7 +49,7 @@ config ZMK_BSPC_SPECIAL_HOLD_MS
     help
       How long a press must be held (from a cold start, or on the
       follow-up press after a tap) before it resolves as a hold
-      (Shift, or Backspace-repeat) instead of a tap.
+      (Backspace-repeat) instead of a tap.
 
 config ZMK_BSPC_SPECIAL_FOLLOWUP_MS
     int "Backspace special: follow-up press window in milliseconds"

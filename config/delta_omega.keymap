@@ -35,9 +35,9 @@
  *   - Space: tap = Space, hold = FN. Position 31 is the chatter-prone
  *     physical switch, so this uses space_ht (release-grace protection)
  *     rather than a plain &lt, same as always.
- *   - Backspace: a from-scratch 4-function custom behavior (bspc_special) -
- *     tap = one Bspc, hold-from-cold = Shift, tap-then-tap = Caps Word,
- *     tap-then-hold = Bspc held down (OS-level key repeat).
+ *   - Backspace: a from-scratch 3-function custom behavior (bspc_special) -
+ *     tap = one Bspc, hold (cold or after a tap) = Bspc held down (OS-level
+ *     key repeat), tap-then-tap = Caps Word.
  *   - Enter: tap = Enter, hold = NAV.
  * Esc is off the thumbs entirely - combo_esc_kor/combo_esc_eng/combo_esc
  * below are its only access, with the KOR<->ENG switch (bsw) as the hold

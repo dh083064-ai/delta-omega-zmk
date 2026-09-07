@@ -1,6 +1,6 @@
 description: >
-  Backspace special: tap = one Bspc, hold-from-cold = Shift,
-  tap-then-tap = Caps Word, tap-then-hold = Bspc held down (OS repeat).
+  Backspace special: tap = one Bspc, hold (cold or after a tap) = Bspc
+  held down (OS repeat), tap-then-tap = Caps Word.
 
 compatible: "zmk,behavior-bspc-special"
 

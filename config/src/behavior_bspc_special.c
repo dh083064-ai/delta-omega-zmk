@@ -1,11 +1,11 @@
 /*
- * Delta Omega Backspace special: a from-scratch 4-function key.
+ * Delta Omega Backspace special: a from-scratch 3-function key.
  *
- *   1. Quick tap                     -> one Backspace.
- *   2. Held from a cold start        -> Shift, for as long as it's held.
- *   3. Tap, then a second quick tap  -> Caps Word.
- *   4. Tap, then a second press held -> Backspace held down (the host's own
- *      key-repeat then deletes repeatedly, same as a stock keyboard).
+ *   1. Quick tap                    -> one Backspace.
+ *   2. Held (from a cold start, or  -> Backspace held down (the host's own
+ *      as the second press after a     key-repeat then deletes repeatedly,
+ *      tap)                            same as a stock keyboard).
+ *   3. Tap, then a second quick tap -> Caps Word.
  *
  * Backspace fires immediately on the first tap (no artificial delay), since
  * that's by far the most common case. The second-press logic only kicks in
@@ -31,10 +31,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 enum bspc_state {
     BSPC_IDLE,
     BSPC_P1_PENDING,     /* first press, still within the hold threshold */
-    BSPC_SHIFT_ACTIVE,   /* resolved as hold-from-cold: Shift is down */
     BSPC_AFTER_TAP_WAIT, /* first tap already fired Bspc; watching for a follow-up press */
     BSPC_P2_PENDING,     /* second press, still within the hold threshold */
-    BSPC_REPEAT_ACTIVE,  /* resolved as tap-then-hold: Bspc is held down */
+    BSPC_REPEAT_ACTIVE,  /* resolved as a hold (cold or after a tap): Bspc is held down */
 };
 
 enum bspc_pending_release {
@@ -97,10 +96,7 @@ static void term_work_handler(struct k_work *work) {
     struct k_work_delayable *dwork = k_work_delayable_from_work(work);
     struct bspc_slot *slot = CONTAINER_OF(dwork, struct bspc_slot, term_work);
 
-    if (slot->state == BSPC_P1_PENDING) {
-        slot->state = BSPC_SHIFT_ACTIVE;
-        fire_key(LSHFT, true);
-    } else if (slot->state == BSPC_P2_PENDING) {
+    if (slot->state == BSPC_P1_PENDING || slot->state == BSPC_P2_PENDING) {
         slot->state = BSPC_REPEAT_ACTIVE;
         fire_key(BSPC, true);
     }
@@ -136,7 +132,6 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
         k_work_schedule(&slot->term_work, K_MSEC(CONFIG_ZMK_BSPC_SPECIAL_HOLD_MS));
         break;
     case BSPC_P1_PENDING:
-    case BSPC_SHIFT_ACTIVE:
     case BSPC_P2_PENDING:
     case BSPC_REPEAT_ACTIVE:
     default:
@@ -165,10 +160,6 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
         slot->pending_release = BSPC_RELEASE_TAP;
         k_work_schedule(&slot->virtual_release_work, K_MSEC(CONFIG_ZMK_DEBOUNCE_TAP_MS));
         k_work_schedule(&slot->followup_work, K_MSEC(CONFIG_ZMK_BSPC_SPECIAL_FOLLOWUP_MS));
-        break;
-    case BSPC_SHIFT_ACTIVE:
-        fire_key(LSHFT, false);
-        slot->state = BSPC_IDLE;
         break;
     case BSPC_P2_PENDING:
         k_work_cancel_delayable(&slot->term_work);
