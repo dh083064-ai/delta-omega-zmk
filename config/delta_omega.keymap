@@ -136,6 +136,11 @@
         #binding-cells = <2>;
     };
 
+    rf: rapid_fire {
+        compatible = "zmk,behavior-rapid-fire";
+        #binding-cells = <1>;
+    };
+
     zip_scroll_scaler: zip_scroll_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -758,19 +763,14 @@
          * itself (which lists GAMING in its own layers) is active.
          * IJKL physical positions carry arrows (I=up, J=left, K=down,
          * L=right); the alpha letters I/J/K/L that displaced move to
-         * ;/,/./  so they're still reachable.
-         *
-         * PC방 variant: rapid-fire (hold-to-spam) removed entirely - most
-         * games' ToS treat auto-repeat as a macro/cheat, and PC방 use in
-         * particular tends to get watched more closely. These positions
-         * are now plain &kp; everything else (keymap, HRM, combos, other
-         * layers) is identical to the home branch.
+         * ;/,/./  so they're still reachable. rf = rapid-fire (randomized
+         * hold-to-spam).
          */
         GAMING {
             bindings = <
-&kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp UP          &kp O           &kp P
-&kp A          &kp S          &kp D           &kp F            &kp G           &kp H           &kp LEFT        &kp DOWN        &kp RIGHT       &kp I
-&kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp J           &kp K           &kp L
+&rf Q          &rf W          &rf E           &kp R            &kp T           &kp Y           &rf U           &kp UP          &kp O           &kp P
+&kp A          &kp S          &kp D           &kp F            &rf G           &rf H           &kp LEFT        &kp DOWN        &kp RIGHT       &kp I
+&kp Z          &rf X          &rf C           &kp V            &rf B           &rf N           &kp M           &kp J           &kp K           &kp L
                                                     &mt_ctrl ESC LCTRL   &kp SPACE   &mt_ctrl BSPC LALT   &lt MUTIL RET
             >;
         };
@@ -784,8 +784,8 @@
         MUTIL {
             bindings = <
 &kp F1         &kp F2         &kp F3          &kp F4           &kp F5          &kp F6          &kp F7          &trans          &kp F9          &kp F10
-&kp N1         &kp N2         &kp N3          &kp N4           &kp N5          &kp N6          &trans          &trans          &trans          &kp N0
-&kp F11        &kp F12        &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &kp APOS        &kp COMMA       &kp FSLH
+&rf N1         &rf N2         &rf N3          &kp N4           &kp N5          &kp N6          &trans          &trans          &trans          &kp N0
+&kp F11        &kp F12        &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp FSLH
                                                     &trans         &trans          &trans          &trans
             >;
         };
