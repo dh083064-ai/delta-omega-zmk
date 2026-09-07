@@ -29,11 +29,12 @@
  *   thumbs: 30(SPACE) 31(ENTER) 32(BACKSPACE) 33(MAGIC_SHIFT)
  *
  * Thumbs replace the old Esc/Space/Backspace/Enter arrangement: Space
- * (Nav-hold) and Enter (Fn-hold) both on the left, Backspace (Num-hold) and
+ * (Num-hold) and Enter (Fn-hold) both on the left, Backspace (Nav-hold) and
  * Magic Shift on the right (urob's Smart Num felt ambiguous in practice -
- * swapped for a plain layer-tap). Esc is still reachable via combo_esc
- * below. The KOR<->ENG switch (previously the hold-action on the Esc thumb)
- * moves to a hold on the same Esc combo.
+ * swapped for a plain layer-tap, and Space/Backspace hold Num/Nav rather
+ * than urob's Nav/Num). Esc is still reachable via combo_esc below. The
+ * KOR<->ENG switch (previously the hold-action on the Esc thumb) moves to
+ * a hold on the same Esc combo.
  *
  * The chatter-prone physical switch is thumb position 31 (originally
  * Space's spot) - space_ht's release-grace protection follows THAT switch,
@@ -685,7 +686,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &lt NAV SPACE   &space_ht FN ENTER   &lt NUM BACKSPACE   &magic_shift LSHFT 0
+                                                    &lt NUM SPACE   &space_ht FN ENTER   &lt NAV BACKSPACE   &magic_shift LSHFT 0
             >;
         };
 
@@ -695,7 +696,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &lt NAV SPACE   &space_ht FN ENTER   &lt NUM BACKSPACE   &magic_shift LSHFT 0
+                                                    &lt NUM SPACE   &space_ht FN ENTER   &lt NAV BACKSPACE   &magic_shift LSHFT 0
             >;
         };
 
