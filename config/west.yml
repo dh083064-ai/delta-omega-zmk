@@ -32,6 +32,7 @@ manifest:
     # esb-no-dongle branch, different module name and Kconfig surface).
     - name: zmk-split-esb
       remote: kumbung01
+      repo-path: zmk-feature-split-esb
       revision: main
     - name: sdk-nrf
       remote: kumbung01
