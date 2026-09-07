@@ -72,6 +72,19 @@
     status = "disabled";
 };
 
+/*
+ * The shield chooses both zmk,matrix_transform and zmk,physical-layout,
+ * which the newer physical_layouts.c only partially supports (it falls
+ * back to matrix_transform with a #warning, but that fallback path may not
+ * be wiring events through correctly). Drop the physical-layout chosen so
+ * only the plain matrix-transform path is used.
+ */
+/ {
+    chosen {
+        /delete-property/ zmk,physical-layout;
+    };
+};
+
 / {
     aliases {
         led-red = &led0;
