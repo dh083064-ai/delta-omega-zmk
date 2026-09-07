@@ -371,6 +371,30 @@
                 strict-modifiers;
             };
         };
+
+        /*
+         * KOR-layer-only variant: Korean input sends the same A-Z HID
+         * keycodes as English, so shift_repeat's "repeat the last letter"
+         * trigger fires almost constantly while typing Hangul, meaning
+         * sticky-shift basically never armed. This variant skips
+         * shift_repeat entirely - tap is always plain sticky-shift.
+         * ENG (Gallium) keeps the original magic_shift with shift_repeat,
+         * since there it's genuine English typing.
+         */
+        magic_shift_kor: magic_shift_kor {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "tap-preferred";
+            tapping-term-ms = <280>;
+            quick-tap-ms = <175>;
+            bindings = <&kp>, <&magic_shift_kor_tap>;
+        };
+        magic_shift_kor_tap: magic_shift_kor_tap {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sk LSHFT>, <&caps_word>;
+            mods = <(MOD_LSFT)>;
+        };
     };
 
     combos {
@@ -656,7 +680,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &smart_num NUM 0   &space_ht FN SPACE   &magic_shift LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM 0   &space_ht FN SPACE   &magic_shift_kor LSHFT 0   &lt NAV ENTER
             >;
         };
 
