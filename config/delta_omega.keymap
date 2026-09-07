@@ -57,6 +57,43 @@
     delay-ms = <0>;
 };
 
+/*
+ * The delta-omega shield module's board overlay only applies under the old
+ * board id (boards/seeeduino_xiao_ble.overlay). Under the newer Zephyr
+ * hwmv2 board id (xiao_ble) that file is never included, which left the
+ * XIAO's I2C/UART pins enabled by default - conflicting with the kscan
+ * matrix pins and breaking every key. Replicated here so it applies
+ * regardless of board-id naming.
+ */
+&xiao_i2c {
+    status = "disabled";
+};
+&xiao_serial {
+    status = "disabled";
+};
+
+/ {
+    aliases {
+        led-red = &led0;
+        led-green = &led1;
+        led-blue = &led2;
+    };
+
+    leds {
+        compatible = "gpio-leds";
+        status = "okay";
+        led0: led_0 {
+            gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
+        };
+        led1: led_1 {
+            gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+        };
+        led2: led_2 {
+            gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+        };
+    };
+};
+
 / {
     dbtap: debounce_tap {
         compatible = "zmk,behavior-debounce-tap";
