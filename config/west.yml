@@ -1,7 +1,4 @@
 manifest:
-  defaults:
-    revision: v0.3
-
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
@@ -9,19 +6,51 @@ manifest:
       url-base: https://github.com/caksoylar
     - name: unspecworks
       url-base: https://github.com/dh083064-ai
+    - name: urob
+      url-base: https://github.com/urob
 
   projects:
     - name: zmk
       remote: zmkfirmware
+      revision: 641514a97db345f499dd50b0360e594270f008fe # main (2026-08-31), matches urob/zmk-config
       import: app/west.yml
 
     - name: zmk-rgbled-widget
       remote: caksoylar
-      revision: v0.3
+      revision: main
 
     - name: zmk-keyboard-delta-omega
       remote: unspecworks
       revision: main
+
+    # urob/zmk-config ports: SmartNum, Magic Shift, Smart Mouse, Swapper, Leader.
+    - name: zmk-auto-layer
+      remote: urob
+      revision: 62c201934711369d50a28df12e1d055d05cb6460
+    - name: zmk-tri-state
+      remote: urob
+      revision: 0c6eaf55d2da0d85b943e02d72831c2d8ea64501
+    - name: zmk-leader-key
+      remote: urob
+      revision: e894d9afa5164b7fff641db4194fc3d4d6e84bbb
+    - name: zmk-adaptive-key
+      remote: urob
+      revision: e5b335a7b1076cb122582f5a892b118b02a3be34
+
+    # Matches the zmk commit above (v4.1.0+zmk-fixes); avoids the default zephyr checkout.
+    - name: zephyr
+      remote: zmkfirmware
+      revision: 10ba6d0cb38bc3d258775d27982f707599320085
+      clone-depth: 1
+      import:
+        name-allowlist:
+          - cmsis
+          - hal_nordic
+          - hal_rpi_pico
+          - hal_stm32
+          - lvgl
+          - mbedtls
+          - tinycrypt
 
   self:
     path: config
