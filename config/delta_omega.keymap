@@ -1,5 +1,4 @@
 #include <behaviors.dtsi>
-#include <behaviors/num_word.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/modifiers.h>
 #include <dt-bindings/zmk/pointing.h>
@@ -27,14 +26,18 @@
  *   row0: 0-4 (left) 5-9 (right)
  *   row1: 10-14 (left) 15-19 (right)
  *   row2: 20-24 (left) 25-29 (right)
- *   thumbs: 30(SPACE) 31(ENTER) 32(SMART_NUM) 33(MAGIC_SHIFT)
+ *   thumbs: 30(SPACE) 31(ENTER) 32(BACKSPACE) 33(MAGIC_SHIFT)
  *
- * Thumbs now match urob's own scheme exactly: Space (Nav-hold) and Enter
- * (Fn-hold) both on the left, Smart Num and Magic Shift both on the right -
- * replacing the old Esc/Space/Backspace/Enter arrangement. Esc/Backspace are
- * still reachable via combo_esc/combo_bspc below. The KOR<->ENG switch
- * (previously the hold-action on the Esc thumb) moves to a hold on the same
- * Esc combo.
+ * Thumbs replace the old Esc/Space/Backspace/Enter arrangement: Space
+ * (Nav-hold) and Enter (Fn-hold) both on the left, Backspace (Num-hold) and
+ * Magic Shift on the right (urob's Smart Num felt ambiguous in practice -
+ * swapped for a plain layer-tap). Esc is still reachable via combo_esc
+ * below. The KOR<->ENG switch (previously the hold-action on the Esc thumb)
+ * moves to a hold on the same Esc combo.
+ *
+ * The chatter-prone physical switch is thumb position 31 (originally
+ * Space's spot) - space_ht's release-grace protection follows THAT switch,
+ * so it's now on Enter/Fn-hold rather than Space/Nav-hold.
  */
 
 &sk {
@@ -208,7 +211,7 @@
 
         /*
          * Tap Esc, hold to switch KOR <-> ENG. Now lives on combo_esc
-         * (was on the Esc thumb before Magic Shift/Smart Num took over).
+         * (was on the Esc thumb before Magic Shift/Backspace took over).
          */
         bsw: base_switch {
             compatible = "zmk,behavior-hold-tap";
@@ -340,25 +343,6 @@
             #binding-cells = <0>;
             tapping-term-ms = <200>;
             bindings = <&kp LC(INS)>, <&kp LC(X)>;
-        };
-
-        /*
-         * Tap: num-word (auto-off after one key) | Double-tap: sticky NUM
-         * layer | Hold: NUM layer.
-         */
-        smart_num: smart_num {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "balanced";
-            tapping-term-ms = <200>;
-            quick-tap-ms = <175>;
-            bindings = <&mo>, <&num_dance>;
-        };
-        num_dance: num_dance {
-            compatible = "zmk,behavior-tap-dance";
-            #binding-cells = <0>;
-            tapping-term-ms = <200>;
-            bindings = <&num_word NUM>, <&sl NUM>;
         };
 
         /*
@@ -701,7 +685,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &space_ht NAV SPACE   &lt FN ENTER   &smart_num NUM 0   &magic_shift LSHFT 0
+                                                    &lt NAV SPACE   &space_ht FN ENTER   &lt NUM BACKSPACE   &magic_shift LSHFT 0
             >;
         };
 
@@ -711,7 +695,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &space_ht NAV SPACE   &lt FN ENTER   &smart_num NUM 0   &magic_shift LSHFT 0
+                                                    &lt NAV SPACE   &space_ht FN ENTER   &lt NUM BACKSPACE   &magic_shift LSHFT 0
             >;
         };
 
