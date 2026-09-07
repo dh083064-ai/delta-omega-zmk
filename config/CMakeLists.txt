@@ -1,5 +1,4 @@
 if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
   target_sources(app PRIVATE src/behavior_debounce_tap.c)
   target_sources(app PRIVATE src/behavior_space_holdtap.c)
-  target_sources(app PRIVATE src/behavior_bspc_special.c)
 endif()
