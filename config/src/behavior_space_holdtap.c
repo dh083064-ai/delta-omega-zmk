@@ -66,7 +66,7 @@ static void sht_term_work_handler(struct k_work *work) {
     }
 
     slot->state = SHT_HOLD_ACTIVE;
-    zmk_keymap_layer_activate(slot->layer);
+    zmk_keymap_layer_activate(slot->layer, false);
 }
 
 static void sht_grace_work_handler(struct k_work *work) {
@@ -78,7 +78,7 @@ static void sht_grace_work_handler(struct k_work *work) {
     }
 
     slot->state = SHT_IDLE;
-    zmk_keymap_layer_deactivate(slot->layer);
+    zmk_keymap_layer_deactivate(slot->layer, false);
 }
 
 static void sht_tap_release_work_handler(struct k_work *work) {
