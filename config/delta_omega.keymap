@@ -27,7 +27,13 @@
  *   row0: 0-4 (left) 5-9 (right)
  *   row1: 10-14 (left) 15-19 (right)
  *   row2: 20-24 (left) 25-29 (right)
- *   thumbs: 30(ESC) 31(SPACE) 32(BACKSPACE) 33(ENTER)
+ *   thumbs: 30(MAGIC_SHIFT) 31(SPACE) 32(SMART_NUM) 33(ENTER)
+ *
+ * Thumbs now match urob's own scheme: Space (Nav-hold) and Enter (Fn-hold)
+ * stay exactly where they were; the old dedicated Esc/Backspace thumbs are
+ * replaced with Magic Shift and Smart Num. Esc/Backspace are still reachable
+ * via combo_esc/combo_bspc below. The KOR<->ENG switch (previously the
+ * hold-action on the Esc thumb) moves to a hold on the same Esc combo.
  */
 
 &sk {
@@ -161,26 +167,16 @@
             hold-trigger-on-release;
         };
 
-        /* Tap Esc, hold to switch KOR <-> ENG. */
+        /*
+         * Tap Esc, hold to switch KOR <-> ENG. Now lives on combo_esc
+         * (was on the Esc thumb before Magic Shift/Smart Num took over).
+         */
         bsw: base_switch {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
             flavor = "tap-preferred";
             tapping-term-ms = <250>;
             bindings = <&to>, <&kp>;
-        };
-
-        /*
-         * Backspace: tap = one delete, hold = NUM.
-         * tap-then-hold within quick-tap window = normal repeating Backspace.
-         */
-        bsplt: backspace_layer_tap {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "tap-preferred";
-            tapping-term-ms = <200>;
-            quick-tap-ms = <250>;
-            bindings = <&mo>, <&kp>;
         };
 
         /* Mask CTRL on long-tap Left/Right nav to avoid jumping to doc start/end. */
@@ -317,6 +313,39 @@
             bindings = <&mo>, <&num_word>;
         };
 
+        /*
+         * Magic Shift: hold = Shift. Tap = sticky-Shift, unless the prior
+         * key was a letter within 350ms, in which case tap repeats that
+         * letter's last output instead (shift_repeat) - Caps Word on
+         * Shift+tap.
+         */
+        magic_shift: magic_shift {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <175>;
+            bindings = <&kp>, <&magic_shift_tap>;
+        };
+        magic_shift_tap: magic_shift_tap {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&shift_repeat>, <&caps_word>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        shift_repeat: shift_repeat {
+            compatible = "zmk,behavior-adaptive-key";
+            #binding-cells = <0>;
+            bindings = <&sk LSHFT>;
+
+            repeat {
+                trigger-keys = <A B C D E F G H I J K L M N O P Q R S T U V W X Y Z>;
+                bindings = <&key_repeat>;
+                max-prior-idle-ms = <350>;
+                strict-modifiers;
+            };
+        };
+
         /* Sticky shift + leader key, chained via a macro. */
         leader_sft: leader_sft {
             compatible = "zmk,behavior-macro";
@@ -359,11 +388,27 @@
             bindings = <&kp RALT>;
         };
 
-        /* Left top row: Esc / toggle Mouse layer. */
+        /*
+         * Left top row: Esc / toggle Mouse layer. On KOR/ENG the Esc combo
+         * doubles as the KOR<->ENG switch on hold (bsw), same as when it
+         * lived on the Esc thumb.
+         */
+        combo_esc_kor {
+            timeout-ms = <18>;
+            key-positions = <1 2>;
+            layers = <KOR>;
+            bindings = <&bsw ENG ESC>;
+        };
+        combo_esc_eng {
+            timeout-ms = <18>;
+            key-positions = <1 2>;
+            layers = <ENG>;
+            bindings = <&bsw KOR ESC>;
+        };
         combo_esc {
             timeout-ms = <18>;
             key-positions = <1 2>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <NAV NUM>;
             bindings = <&kp ESC>;
         };
         combo_mouse {
@@ -596,7 +641,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &bsw ENG ESC   &space_ht NAV SPACE   &bsplt NUM BACKSPACE   &lt FN ENTER
+                                                    &magic_shift LSHFT 0   &space_ht NAV SPACE   &smart_num NUM 0   &lt FN ENTER
             >;
         };
 
@@ -606,7 +651,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &bsw KOR ESC   &space_ht NAV SPACE   &bsplt NUM BACKSPACE   &lt FN ENTER
+                                                    &magic_shift LSHFT 0   &space_ht NAV SPACE   &smart_num NUM 0   &lt FN ENTER
             >;
         };
 
