@@ -438,12 +438,12 @@
             bindings = <&smart_mouse>;
         };
 
-        /* Left home row: question mark (tap) / exclamation mark (shift+tap). */
+        /* Left home row (D+F): exclamation mark. */
         combo_qexcl {
             timeout-ms = <18>;
             key-positions = <12 13>;
             layers = <KOR ENG NAV NUM>;
-            bindings = <&qexcl>;
+            bindings = <&kp EXCL>;
         };
 
         /* Left home row: Tab, chords Shift+Alt when held. */
