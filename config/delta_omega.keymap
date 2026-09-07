@@ -348,7 +348,7 @@
         magic_shift: magic_shift {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
-            flavor = "balanced";
+            flavor = "tap-preferred";
             tapping-term-ms = <280>;
             quick-tap-ms = <175>;
             bindings = <&kp>, <&magic_shift_tap>;
