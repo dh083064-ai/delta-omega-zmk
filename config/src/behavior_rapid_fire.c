@@ -41,6 +41,42 @@ static inline void rf_log_cancel_wait(uint32_t position, uint32_t start_cycles) 
     }
 }
 
+/*
+ * Same diagnostic-only deal as above: measures the ACTUAL press-to-press
+ * interval and press-to-release (DOWN) duration the firmware produced,
+ * against the configured MIN/MAX_INTERVAL_MS and TAP_MS - i.e. how
+ * accurately k_work_schedule's requested delays were actually honored,
+ * which is the closest thing to "what the host would observe" available
+ * without a USB packet capture. No-op when CONFIG_LOG=n.
+ */
+static bool rf_interval_min_seen;
+static uint32_t rf_interval_min_us;
+static uint32_t rf_interval_max_us;
+static uint32_t rf_down_max_us;
+
+static inline void rf_log_interval(uint32_t position, uint32_t interval_us) {
+    LOG_DBG("rf pos %d: measured interval = %uus (configured %u-%ums)", position, interval_us,
+            CONFIG_ZMK_RAPID_FIRE_MIN_INTERVAL_MS, CONFIG_ZMK_RAPID_FIRE_MAX_INTERVAL_MS);
+    if (!rf_interval_min_seen || interval_us < rf_interval_min_us) {
+        rf_interval_min_seen = true;
+        rf_interval_min_us = interval_us;
+        LOG_INF("rf: new min interval = %uus (pos %d)", interval_us, position);
+    }
+    if (interval_us > rf_interval_max_us) {
+        rf_interval_max_us = interval_us;
+        LOG_INF("rf: new max interval = %uus (pos %d)", interval_us, position);
+    }
+}
+
+static inline void rf_log_down_duration(uint32_t position, uint32_t down_us) {
+    LOG_DBG("rf pos %d: measured DOWN duration = %uus (configured %ums)", position, down_us,
+            CONFIG_ZMK_RAPID_FIRE_TAP_MS);
+    if (down_us > rf_down_max_us) {
+        rf_down_max_us = down_us;
+        LOG_INF("rf: new max DOWN duration = %uus (pos %d)", down_us, position);
+    }
+}
+
 #define RF_MAX_POSITIONS 64
 
 struct rf_slot {
@@ -57,6 +93,10 @@ struct rf_slot {
     uint32_t encoded_keycode;
     bool active;
     bool virtual_pressed;
+    /* Cycle timestamp of the last virtual press - 0 means "no prior press
+     * in this hold session", so the diagnostic interval logging below
+     * doesn't compare across two separate physical holds. */
+    uint32_t last_press_cycles;
 };
 
 static struct rf_slot rf_slots[RF_MAX_POSITIONS];
@@ -74,38 +114,51 @@ static uint32_t rf_next_interval_ms(void) {
 }
 
 
-static void rf_send_press(struct rf_slot *slot) {
+static void rf_send_press(struct rf_slot *slot, uint32_t position) {
     if (slot->virtual_pressed || !slot->active) {
         return;
     }
     slot->virtual_pressed = true;
+
+    uint32_t now_cycles = k_cycle_get_32();
+    if (slot->last_press_cycles != 0) {
+        rf_log_interval(position, k_cyc_to_us_floor32(now_cycles - slot->last_press_cycles));
+    }
+    slot->last_press_cycles = now_cycles;
+
     raise_zmk_keycode_state_changed_from_encoded(slot->encoded_keycode, true, k_uptime_get());
 }
 
-static void rf_send_release(struct rf_slot *slot) {
+static void rf_send_release(struct rf_slot *slot, uint32_t position) {
     if (!slot->virtual_pressed) {
         return;
     }
     slot->virtual_pressed = false;
+
+    if (slot->last_press_cycles != 0) {
+        rf_log_down_duration(position, k_cyc_to_us_floor32(k_cycle_get_32() - slot->last_press_cycles));
+    }
+
     raise_zmk_keycode_state_changed_from_encoded(slot->encoded_keycode, false, k_uptime_get());
 }
 
 static void rf_release_work_handler(struct k_work *work) {
     struct k_work_delayable *dwork = k_work_delayable_from_work(work);
     struct rf_slot *slot = CONTAINER_OF(dwork, struct rf_slot, release_work);
-    rf_send_release(slot);
+    rf_send_release(slot, (uint32_t)(slot - rf_slots));
 }
 
 static void rf_repeat_work_handler(struct k_work *work) {
     struct k_work_delayable *dwork = k_work_delayable_from_work(work);
     struct rf_slot *slot = CONTAINER_OF(dwork, struct rf_slot, repeat_work);
+    uint32_t position = (uint32_t)(slot - rf_slots);
 
     if (!slot->active) {
         return;
     }
 
-    rf_send_release(slot);
-    rf_send_press(slot);
+    rf_send_release(slot, position);
+    rf_send_press(slot, position);
     k_work_schedule(&slot->release_work, K_MSEC(CONFIG_ZMK_RAPID_FIRE_TAP_MS));
     k_work_schedule(&slot->repeat_work, K_MSEC(rf_next_interval_ms()));
 }
@@ -145,12 +198,15 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
     rf_log_cancel_wait(event.position, cancel_start);
-    rf_send_release(slot);
+    rf_send_release(slot, event.position);
 
     slot->encoded_keycode = binding->param1;
     slot->active = true;
+    /* New hold session - don't compare its first interval against the
+     * previous, unrelated hold's last press. */
+    slot->last_press_cycles = 0;
 
-    rf_send_press(slot);
+    rf_send_press(slot, event.position);
     k_work_schedule(&slot->release_work, K_MSEC(CONFIG_ZMK_RAPID_FIRE_TAP_MS));
     k_work_schedule(&slot->repeat_work, K_MSEC(rf_next_interval_ms()));
 
@@ -172,7 +228,7 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
     rf_log_cancel_wait(event.position, cancel_start);
-    rf_send_release(slot);
+    rf_send_release(slot, event.position);
 
     return ZMK_BEHAVIOR_OPAQUE;
 }
