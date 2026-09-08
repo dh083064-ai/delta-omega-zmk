@@ -9,7 +9,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/random/random.h>
-#include <zephyr/sys/time_units.h>
 
 #include <drivers/behavior.h>
 #include <zmk/behavior.h>
@@ -17,75 +16,6 @@
 #include <zmk/events/keycode_state_changed.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-
-/*
- * Diagnostic only: measures how long the two sync-cancels below actually
- * block, so real-world worst case (e.g. mashing a rapid-fire key as fast
- * as possible) can be checked against expectation instead of assumed.
- * Compiles to nothing when CONFIG_LOG=n (release builds) - LOG_INF/LOG_DBG
- * are no-op macros in that case, and rf_cancel_max_us is unused but
- * harmless. To actually capture numbers, temporarily build with
- * CONFIG_LOG=y (and CONFIG_ZMK_USB_LOGGING=y to get a COM port to read it
- * from), tapping-term/level high enough for LOG_DBG if per-call detail is
- * wanted - LOG_INF alone already reports every new observed max.
- */
-static uint32_t rf_cancel_max_us;
-
-static inline void rf_log_cancel_wait(uint32_t position, uint32_t start_cycles) {
-    uint32_t elapsed_us = k_cyc_to_us_floor32(k_cycle_get_32() - start_cycles);
-
-    LOG_DBG("rf pos %d: cancel-sync wait = %uus", position, elapsed_us);
-    if (elapsed_us > rf_cancel_max_us) {
-        rf_cancel_max_us = elapsed_us;
-        LOG_INF("rf: new max cancel-sync wait = %uus (pos %d)", elapsed_us, position);
-    }
-}
-
-/*
- * Same diagnostic-only deal as above: measures the ACTUAL press-to-press
- * interval and press-to-release (DOWN) duration the firmware produced,
- * against the configured MIN/MAX_INTERVAL_MS and TAP_MS - i.e. how
- * accurately k_work_schedule's requested delays were actually honored,
- * which is the closest thing to "what the host would observe" available
- * without a USB packet capture. No-op when CONFIG_LOG=n.
- */
-static bool rf_interval_min_seen;
-static uint32_t rf_interval_min_us;
-static uint32_t rf_interval_max_us;
-static uint32_t rf_down_max_us;
-
-static inline void rf_log_interval(uint32_t position, uint32_t interval_us) {
-    LOG_DBG("rf pos %d: measured interval = %uus (configured %u-%ums)", position, interval_us,
-            CONFIG_ZMK_RAPID_FIRE_MIN_INTERVAL_MS, CONFIG_ZMK_RAPID_FIRE_MAX_INTERVAL_MS);
-    if (!rf_interval_min_seen || interval_us < rf_interval_min_us) {
-        rf_interval_min_seen = true;
-        rf_interval_min_us = interval_us;
-        LOG_INF("rf: new min interval = %uus (pos %d)", interval_us, position);
-    }
-    if (interval_us > rf_interval_max_us) {
-        rf_interval_max_us = interval_us;
-        LOG_INF("rf: new max interval = %uus (pos %d)", interval_us, position);
-    }
-}
-
-static inline void rf_log_down_duration(uint32_t position, uint32_t down_us) {
-    LOG_DBG("rf pos %d: measured DOWN duration = %uus (configured %ums)", position, down_us,
-            CONFIG_ZMK_RAPID_FIRE_TAP_MS);
-    if (down_us > rf_down_max_us) {
-        rf_down_max_us = down_us;
-        LOG_INF("rf: new max DOWN duration = %uus (pos %d)", down_us, position);
-    }
-}
-
-/*
- * How long the finger actually held the physical key, press to release -
- * distinct from the virtual DOWN duration above (which is per repeat
- * cycle). One line per physical hold, meant to be captured over a real
- * play session and post-processed for count/min/mean/median/p90/p95/max.
- */
-static inline void rf_log_physical_hold(uint32_t position, uint32_t hold_us) {
-    LOG_INF("rf: physical hold = %uus (pos %d)", hold_us, position);
-}
 
 #define RF_MAX_POSITIONS 64
 
@@ -103,14 +33,6 @@ struct rf_slot {
     uint32_t encoded_keycode;
     bool active;
     bool virtual_pressed;
-    /* Cycle timestamp of the last virtual press - 0 means "no prior press
-     * in this hold session", so the diagnostic interval logging below
-     * doesn't compare across two separate physical holds. */
-    uint32_t last_press_cycles;
-    /* Cycle timestamp of the physical press (behavior_pressed), for the
-     * physical-hold-duration diagnostic - separate from last_press_cycles,
-     * which tracks the latest *virtual* repeat-cycle press instead. */
-    uint32_t physical_press_cycles;
 };
 
 static struct rf_slot rf_slots[RF_MAX_POSITIONS];
@@ -128,51 +50,38 @@ static uint32_t rf_next_interval_ms(void) {
 }
 
 
-static void rf_send_press(struct rf_slot *slot, uint32_t position) {
+static void rf_send_press(struct rf_slot *slot) {
     if (slot->virtual_pressed || !slot->active) {
         return;
     }
     slot->virtual_pressed = true;
-
-    uint32_t now_cycles = k_cycle_get_32();
-    if (slot->last_press_cycles != 0) {
-        rf_log_interval(position, k_cyc_to_us_floor32(now_cycles - slot->last_press_cycles));
-    }
-    slot->last_press_cycles = now_cycles;
-
     raise_zmk_keycode_state_changed_from_encoded(slot->encoded_keycode, true, k_uptime_get());
 }
 
-static void rf_send_release(struct rf_slot *slot, uint32_t position) {
+static void rf_send_release(struct rf_slot *slot) {
     if (!slot->virtual_pressed) {
         return;
     }
     slot->virtual_pressed = false;
-
-    if (slot->last_press_cycles != 0) {
-        rf_log_down_duration(position, k_cyc_to_us_floor32(k_cycle_get_32() - slot->last_press_cycles));
-    }
-
     raise_zmk_keycode_state_changed_from_encoded(slot->encoded_keycode, false, k_uptime_get());
 }
 
 static void rf_release_work_handler(struct k_work *work) {
     struct k_work_delayable *dwork = k_work_delayable_from_work(work);
     struct rf_slot *slot = CONTAINER_OF(dwork, struct rf_slot, release_work);
-    rf_send_release(slot, (uint32_t)(slot - rf_slots));
+    rf_send_release(slot);
 }
 
 static void rf_repeat_work_handler(struct k_work *work) {
     struct k_work_delayable *dwork = k_work_delayable_from_work(work);
     struct rf_slot *slot = CONTAINER_OF(dwork, struct rf_slot, repeat_work);
-    uint32_t position = (uint32_t)(slot - rf_slots);
 
     if (!slot->active) {
         return;
     }
 
-    rf_send_release(slot, position);
-    rf_send_press(slot, position);
+    rf_send_release(slot);
+    rf_send_press(slot);
     k_work_schedule(&slot->release_work, K_MSEC(CONFIG_ZMK_RAPID_FIRE_TAP_MS));
     k_work_schedule(&slot->repeat_work, K_MSEC(rf_next_interval_ms()));
 }
@@ -196,11 +105,6 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
 
     struct rf_slot *slot = &rf_slots[event.position];
 
-    /* Physical-hold-duration diagnostic: mark the true physical press
-     * moment before anything else (cancel/schedule overhead is a handful
-     * of us - see rf_log_cancel_wait - so this is effectively "now"). */
-    slot->physical_press_cycles = k_cycle_get_32();
-
     /*
      * _sync blocks until any in-flight handler actually finishes, unlike
      * plain cancel_delayable() (which per Zephyr's own docs may return
@@ -213,19 +117,14 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
      * never inside rf_repeat_work_handler/rf_release_work_handler
      * themselves - a work item must never sync-cancel itself.
      */
-    uint32_t cancel_start = k_cycle_get_32();
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
-    rf_log_cancel_wait(event.position, cancel_start);
-    rf_send_release(slot, event.position);
+    rf_send_release(slot);
 
     slot->encoded_keycode = binding->param1;
     slot->active = true;
-    /* New hold session - don't compare its first interval against the
-     * previous, unrelated hold's last press. */
-    slot->last_press_cycles = 0;
 
-    rf_send_press(slot, event.position);
+    rf_send_press(slot);
     k_work_schedule(&slot->release_work, K_MSEC(CONFIG_ZMK_RAPID_FIRE_TAP_MS));
     k_work_schedule(&slot->repeat_work, K_MSEC(rf_next_interval_ms()));
 
@@ -243,13 +142,9 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     struct rf_slot *slot = &rf_slots[event.position];
 
     slot->active = false;
-    uint32_t cancel_start = k_cycle_get_32();
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
-    rf_log_cancel_wait(event.position, cancel_start);
-    rf_log_physical_hold(event.position,
-                         k_cyc_to_us_floor32(k_cycle_get_32() - slot->physical_press_cycles));
-    rf_send_release(slot, event.position);
+    rf_send_release(slot);
 
     return ZMK_BEHAVIOR_OPAQUE;
 }
