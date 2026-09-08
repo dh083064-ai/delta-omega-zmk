@@ -58,4 +58,21 @@ config ZMK_GAMING_CMD_WINDOW_MS
       remembered - every physical press still outputs its HID key
       immediately, nothing is buffered or delayed.
 
+config ZMK_G_ROLL_GRACE_MS
+    int "G roll-aware grace: max grace window after physical release, in milliseconds"
+    default 50
+    range 5 500
+    help
+      Experimental rapid-fire alternative for a single key (groll
+      branch only). If a direction key was already pressed while G was
+      still physically held, G's HID releases immediately on physical
+      release (the common "roll" case - see the esb-tdma-pcbang-gaming
+      input-sequence measurement, ~43% of sessions). Otherwise G stays
+      HID-down for up to this many ms after physical release, waiting
+      for a direction key; if a direction key arrives during that
+      window, G releases immediately (before the direction key's own
+      down); if the window elapses first, G releases on timeout. Unlike
+      gstretch/glatch this is NOT a cap on total hold time - it only
+      bounds the grace *after* release.
+
 endmenu

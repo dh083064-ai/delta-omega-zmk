@@ -1,0 +1,5 @@
+description: G roll-aware grace direction-key wrapper - behaves exactly like &kp for its own keycode. While G is held, marks direction_seen (G is not touched). While G is in its post-release grace window, ends the grace immediately (HID G up) before emitting its own press, so ordering is always G-up-then-direction-down. A no-op passthrough to plain &kp behavior otherwise.
+
+compatible: "zmk,behavior-groll-direction"
+
+include: one_param.yaml
