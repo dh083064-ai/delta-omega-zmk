@@ -1,0 +1,5 @@
+description: G latch direction-key wrapper - behaves exactly like &kp for its own keycode, but on press first ends an active G latch (HID G up) before emitting its own press, so G up always precedes the direction key's down. A no-op passthrough to plain &kp behavior when no latch is active.
+
+compatible: "zmk,behavior-glatch-direction"
+
+include: one_param.yaml

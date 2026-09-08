@@ -1,0 +1,5 @@
+description: G latch - press emits HID down immediately; physical release does NOT emit HID up, it latches until a direction key (glatch_direction) ends it or CONFIG_ZMK_G_LATCH_MAX_HOLD_MS (measured from physical press) is reached. No repeat/rapid-fire edges - one press, one (possibly delayed) release per physical session.
+
+compatible: "zmk,behavior-g-latch"
+
+include: one_param.yaml

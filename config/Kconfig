@@ -58,4 +58,16 @@ config ZMK_GAMING_CMD_WINDOW_MS
       remembered - every physical press still outputs its HID key
       immediately, nothing is buffered or delayed.
 
+config ZMK_G_LATCH_MAX_HOLD_MS
+    int "G latch: maximum total HID hold duration in milliseconds"
+    default 180
+    range 50 2000
+    help
+      Experimental rapid-fire alternative for a single key (glatch
+      branch only). G's HID stays down after physical release (latched)
+      until a direction key (LEFT/RIGHT) ends it or this many ms have
+      elapsed since the *physical press* - whichever comes first. Not an
+      extra delay added after release; it's a cap on total HID hold time
+      from press. A/B candidates: 150/180/220.
+
 endmenu

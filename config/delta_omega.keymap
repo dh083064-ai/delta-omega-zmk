@@ -141,6 +141,25 @@
         #binding-cells = <1>;
     };
 
+    /*
+     * EXPERIMENTAL (glatch branch only): A/B alternative to rapid-fire
+     * for G specifically - see behavior_g_latch.c. Physical release
+     * doesn't release the HID key; it latches until LEFT/RIGHT (via
+     * glatch_dir below) or CONFIG_ZMK_G_LATCH_MAX_HOLD_MS ends it. Every
+     * other rapid-fire key (&rf ...) is untouched.
+     */
+    glatch: g_latch {
+        compatible = "zmk,behavior-g-latch";
+        #binding-cells = <1>;
+    };
+    /* LEFT/RIGHT wrapper: ends an active G latch (HID G up) before its
+     * own press, so ordering is always G-up-then-direction-down. Plain
+     * &kp passthrough otherwise. */
+    glatch_dir: glatch_direction {
+        compatible = "zmk,behavior-glatch-direction";
+        #binding-cells = <1>;
+    };
+
     /* Gaming layer 7: alternates LALT/F8 on the Cleanse thumb key. */
     cleanse_alt: cleanse_alt {
         compatible = "zmk,behavior-cleanse-alt";
@@ -822,7 +841,11 @@
          * IJKL physical positions carry arrows (I=up, J=left, K=down,
          * L=right); the alpha letters I/J/K/L that displaced move to
          * ;/,/./  so they're still reachable. rf = rapid-fire (randomized
-         * hold-to-spam).
+         * hold-to-spam). G (pos14) uses glatch instead, and LEFT/RIGHT
+         * (pos16/18) use glatch_dir instead of plain &kp - EXPERIMENTAL,
+         * this branch's A/B test of a latch-until-direction-key
+         * alternative to rapid-fire (see behavior_g_latch.c); every
+         * other rf key is unchanged.
          *
          * A (pos10) and Down (pos17) also drive the Down-Down-A/Down
          * command state machine (gcmd_trigger/gcmd_down, see
@@ -837,7 +860,7 @@
         GAMING {
             bindings = <
 &rf Q          &rf W          &rf E           &kp R            &kp T           &kp Y           &rf U           &kp UP          &kp O           &kp P
-&gcmd_trigger A N9   &kp S    &kp D           &kp F            &rf G           &rf H           &kp LEFT        &gcmd_down      &kp RIGHT       &kp I
+&gcmd_trigger A N9   &kp S    &kp D           &kp F            &glatch G       &rf H           &glatch_dir LEFT   &gcmd_down   &glatch_dir RIGHT   &kp I
 &kp Z          &rf X          &rf C           &kp V            &rf B           &rf N           &kp M           &kp J           &kp K           &kp L
                                                     &cleanse_alt   &kp SPACE   &gaming_ctrl_esc ESC 0   &lt MUTIL RET
             >;
