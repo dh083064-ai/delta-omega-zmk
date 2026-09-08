@@ -41,10 +41,20 @@
 #include <zmk/behavior.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/keycode_state_changed.h>
+#include <zmk/events/position_state_changed.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define GSTRETCH_MAX_POSITIONS 64
+
+/*
+ * DEBUG-only (temporary, this measurement round): fixed physical
+ * positions per this project's convention (combos/gcmd already hardcode
+ * positions the same way - see delta_omega.keymap's GAMING row1/row0).
+ * G lives at 14, the marker key (Y, plain &kp Y, untouched) at 5.
+ */
+#define GSTRETCH_G_POSITION 14
+#define GSTRETCH_Y_MARKER_POSITION 5
 
 enum gstretch_state {
     GSTRETCH_IDLE = 0,
@@ -66,9 +76,99 @@ struct gstretch_slot {
 
 static struct gstretch_slot gstretch_slots[GSTRETCH_MAX_POSITIONS];
 
+/*
+ * DEBUG-only tracking below, all temporary for this measurement round:
+ *   - g_release_cycles / g_watching_next_key: armed at G's physical
+ *     release, cleared by the first other physical key press after it
+ *     (or by a G re-press) - reports how long after G let go the next
+ *     real key came in, and whether G's HID was still held at that point.
+ *   - g_last_*: the most recently *completed* G session's numbers, so a
+ *     marker (Y) press after G has fully released can still report them.
+ */
+static bool g_watching_next_key;
+static uint32_t g_release_cycles;
+static bool g_last_valid;
+static uint32_t g_last_physical_ms;
+static uint32_t g_last_hid_ms;
+static uint32_t g_last_added_ms;
+
 static inline uint32_t gstretch_elapsed_ms(uint32_t press_cycles) {
     return k_cyc_to_ms_floor32(k_cycle_get_32() - press_cycles);
 }
+
+static void gstretch_arm_release_tracking(void) {
+    g_release_cycles = k_cycle_get_32();
+    g_watching_next_key = true;
+}
+
+static void gstretch_log_marker(void) {
+    struct gstretch_slot *g = &gstretch_slots[GSTRETCH_G_POSITION];
+
+    switch (g->state) {
+    case GSTRETCH_HELD:
+        /* G is physically still down right now - hasn't released yet. */
+        LOG_INF("MARKER_Y: G_currently_held=yes, physical_so_far=%ums",
+                gstretch_elapsed_ms(g->press_cycles));
+        break;
+    case GSTRETCH_RELEASE_PENDING: {
+        /* Physically released, HID stretch still counting down - the
+         * eventual physical/hid/added numbers are already fully known
+         * at this point (schedule time fixed them), just not yet logged
+         * by gstretch_release_work_handler. */
+        uint32_t added_ms = CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS - g->debug_physical_elapsed_ms;
+        LOG_INF("MARKER_Y: G_hid_still_held=yes, physical=%ums hid=%ums added=%ums, "
+                "since_g_release=%ums",
+                g->debug_physical_elapsed_ms, CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS, added_ms,
+                gstretch_elapsed_ms(g_release_cycles));
+        break;
+    }
+    case GSTRETCH_IDLE:
+    default:
+        if (g_last_valid) {
+            LOG_INF("MARKER_Y: G_hid_still_held=no, physical=%ums hid=%ums added=%ums, "
+                    "since_g_release=%ums",
+                    g_last_physical_ms, g_last_hid_ms, g_last_added_ms,
+                    gstretch_elapsed_ms(g_release_cycles));
+        } else {
+            LOG_INF("MARKER_Y: no prior G input this session");
+        }
+        break;
+    }
+}
+
+/* Any other physical key press after G's release - see the reasoning in
+ * behavior_gaming_cmd.c for why position_state_changed (not the
+ * position-less keycode_state_changed our own behaviors raise) is the
+ * right event for "did the user physically press something else". */
+static int gstretch_position_state_changed_listener(const zmk_event_t *eh) {
+    const struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
+
+    if (ev == NULL || !ev->state) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    if (ev->position == GSTRETCH_G_POSITION) {
+        /* Fresh G session (or repress) starting - stale watch, if any. */
+        g_watching_next_key = false;
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    if (g_watching_next_key) {
+        g_watching_next_key = false;
+        bool g_hid_still_held = gstretch_slots[GSTRETCH_G_POSITION].state != GSTRETCH_IDLE;
+        LOG_INF("next_key: pos=%d +%ums (G_hid_still_held=%s)", ev->position,
+                gstretch_elapsed_ms(g_release_cycles), g_hid_still_held ? "yes" : "no");
+    }
+
+    if (ev->position == GSTRETCH_Y_MARKER_POSITION) {
+        gstretch_log_marker();
+    }
+
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(gstretch_marker, gstretch_position_state_changed_listener);
+ZMK_SUBSCRIPTION(gstretch_marker, zmk_position_state_changed);
 
 static void gstretch_send_release(struct gstretch_slot *slot) {
     raise_zmk_keycode_state_changed_from_encoded(slot->encoded_keycode, false, k_uptime_get());
@@ -84,9 +184,12 @@ static void gstretch_release_work_handler(struct k_work *work) {
         return;
     }
 
-    LOG_INF("gstretch: physical=%ums hid=%ums added=%ums", slot->debug_physical_elapsed_ms,
-            CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS,
-            CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS - slot->debug_physical_elapsed_ms);
+    g_last_physical_ms = slot->debug_physical_elapsed_ms;
+    g_last_hid_ms = CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS;
+    g_last_added_ms = CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS - slot->debug_physical_elapsed_ms;
+    g_last_valid = true;
+    LOG_INF("gstretch: physical=%ums hid=%ums added=%ums", g_last_physical_ms, g_last_hid_ms,
+            g_last_added_ms);
     gstretch_send_release(slot);
 }
 
@@ -153,7 +256,16 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     }
 
     uint32_t elapsed_ms = gstretch_elapsed_ms(slot->press_cycles);
+
+    if (event.position == GSTRETCH_G_POSITION) {
+        gstretch_arm_release_tracking();
+    }
+
     if (elapsed_ms >= CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS) {
+        g_last_physical_ms = elapsed_ms;
+        g_last_hid_ms = elapsed_ms;
+        g_last_added_ms = 0;
+        g_last_valid = true;
         LOG_INF("gstretch: physical=%ums hid=%ums added=0ms", elapsed_ms, elapsed_ms);
         gstretch_send_release(slot);
         return ZMK_BEHAVIOR_OPAQUE;
