@@ -58,4 +58,15 @@ config ZMK_GAMING_CMD_WINDOW_MS
       remembered - every physical press still outputs its HID key
       immediately, nothing is buffered or delayed.
 
+config ZMK_G_STRETCH_MIN_HOLD_MS
+    int "G minimum-hold stretch: minimum HID hold duration in milliseconds"
+    default 150
+    range 20 2000
+    help
+      Experimental rapid-fire alternative for a single key (gstretch
+      branch only). HID hold duration = max(physical hold duration, this
+      value) - a too-short physical tap has its HID release delayed out
+      to this minimum; a longer hold is passed through unchanged. Press
+      is never delayed, only release. A/B candidates: 130/150/180.
+
 endmenu

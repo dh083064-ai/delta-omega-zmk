@@ -1,0 +1,5 @@
+description: Minimum-hold stretch - press emits HID down immediately; release emits HID up immediately if the physical hold already met the configured minimum, otherwise HID up is delayed until the minimum is reached. No repeat/rapid-fire edges - one press, one (possibly delayed) release per physical session.
+
+compatible: "zmk,behavior-g-stretch"
+
+include: one_param.yaml
