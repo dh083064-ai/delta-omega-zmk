@@ -70,6 +70,9 @@ static uint32_t g_press_cycles;
  * kept around so a later direction-triggered release can still report
  * "physical" alongside the final "hid"/"added" numbers. */
 static uint32_t g_physical_elapsed_ms;
+/* DEBUG-only: cycle timestamp of the physical release (HELD->LATCHED),
+ * so a direction-triggered release can report time-since-physical-release. */
+static uint32_t g_release_cycles;
 static struct k_work_delayable g_timeout_work;
 /* Persistent, not stack-local - see behavior_rapid_fire.c for why. */
 static struct k_work_sync g_timeout_sync;
@@ -91,6 +94,9 @@ static void glatch_timeout_handler(struct k_work *work) {
         return;
     }
 
+    uint32_t hid_ms = CONFIG_ZMK_G_LATCH_MAX_HOLD_MS;
+    LOG_INF("glatch: physical=%ums hid=%ums added=%ums reason=timeout", g_physical_elapsed_ms,
+            hid_ms, hid_ms - g_physical_elapsed_ms);
     glatch_send_release();
 }
 
@@ -107,13 +113,17 @@ static int glatch_init(const struct device *dev) {
  * still physically held, or already idle).
  */
 static void glatch_release_by_direction(uint32_t direction_position) {
-    ARG_UNUSED(direction_position);
-
     if (g_state != GLATCH_LATCHED) {
         return;
     }
 
     k_work_cancel_delayable_sync(&g_timeout_work, &g_timeout_sync);
+
+    uint32_t hid_ms = glatch_elapsed_ms(g_press_cycles);
+    LOG_INF("glatch: physical=%ums hid=%ums added=%ums reason=direction pos=%d "
+            "direction_after_physical_release_ms=%ums",
+            g_physical_elapsed_ms, hid_ms, hid_ms - g_physical_elapsed_ms, direction_position,
+            glatch_elapsed_ms(g_release_cycles));
     glatch_send_release();
 }
 
@@ -134,6 +144,7 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
          */
         k_work_cancel_delayable_sync(&g_timeout_work, &g_timeout_sync);
         g_state = GLATCH_HELD;
+        LOG_INF("glatch: pending timeout cancelled by repress");
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
@@ -163,11 +174,14 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     uint32_t elapsed_ms = glatch_elapsed_ms(g_press_cycles);
 
     if (elapsed_ms >= CONFIG_ZMK_G_LATCH_MAX_HOLD_MS) {
+        LOG_INF("glatch: physical=%ums hid=%ums added=0ms reason=physical_long_hold", elapsed_ms,
+                elapsed_ms);
         glatch_send_release();
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
     g_physical_elapsed_ms = elapsed_ms;
+    g_release_cycles = k_cycle_get_32();
     g_state = GLATCH_LATCHED;
     k_work_schedule(&g_timeout_work, K_MSEC(CONFIG_ZMK_G_LATCH_MAX_HOLD_MS - elapsed_ms));
 
