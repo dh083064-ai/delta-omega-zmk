@@ -96,9 +96,19 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     }
 
     struct rf_slot *slot = &rf_slots[event.position];
+    struct k_work_sync sync;
 
-    k_work_cancel_delayable(&slot->repeat_work);
-    k_work_cancel_delayable(&slot->release_work);
+    /*
+     * _sync blocks until any in-flight handler actually finishes, unlike
+     * plain cancel_delayable() (which per Zephyr's own docs may return
+     * while the handler is still mid-execution on another context). Without
+     * this, a stale release_work that was already running when we cancel
+     * it could still fire afterward, see virtual_pressed=true from THIS
+     * new press, and release it early - or a stale repeat_work could
+     * inject an extra cycle into the new session.
+     */
+    k_work_cancel_delayable_sync(&slot->repeat_work, &sync);
+    k_work_cancel_delayable_sync(&slot->release_work, &sync);
     rf_send_release(slot);
 
     slot->encoded_keycode = binding->param1;
@@ -120,9 +130,11 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     }
 
     struct rf_slot *slot = &rf_slots[event.position];
+    struct k_work_sync sync;
+
     slot->active = false;
-    k_work_cancel_delayable(&slot->repeat_work);
-    k_work_cancel_delayable(&slot->release_work);
+    k_work_cancel_delayable_sync(&slot->repeat_work, &sync);
+    k_work_cancel_delayable_sync(&slot->release_work, &sync);
     rf_send_release(slot);
 
     return ZMK_BEHAVIOR_OPAQUE;

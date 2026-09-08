@@ -29,6 +29,12 @@ static int cleanse_alt_pressed(struct zmk_behavior_binding *binding,
     ARG_UNUSED(binding);
     ARG_UNUSED(event);
 
+    if (cleanse_virtual_pressed) {
+        /* Stray re-press before the matching release (switch bounce) -
+         * ignore, so one physical hold can't advance the alternator twice. */
+        return ZMK_BEHAVIOR_OPAQUE;
+    }
+
     uint32_t code = cleanse_next_is_f8 ? F8 : LALT;
     cleanse_next_is_f8 = !cleanse_next_is_f8;
 

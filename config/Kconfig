@@ -12,8 +12,13 @@ config ZMK_RAPID_FIRE_MAX_INTERVAL_MS
 
 config ZMK_RAPID_FIRE_TAP_MS
     int "Rapid-fire virtual tap duration in milliseconds"
-    default 1
+    default 2
     range 1 100
+    help
+      A 1ms virtual press is only as wide as a single USB 1000Hz polling
+      frame, leaving no margin for the host to reliably observe it. 2ms
+      costs nothing against the 20-26ms interval (repeat rate is set by
+      the interval, not this) but gives a full frame of headroom.
 
 config ZMK_DEBOUNCE_TAP_COOLDOWN_MS
     int "Debounce-tap: minimum gap between fires on the same position"

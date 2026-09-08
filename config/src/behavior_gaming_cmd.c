@@ -81,8 +81,13 @@ static uint32_t gcmd_trigger_active_code;
 static bool gcmd_trigger_virtual_pressed;
 
 static void gcmd_reset(void) {
+    struct k_work_sync sync;
+
     gcmd_state = GCMD_IDLE;
-    k_work_cancel_delayable(&gcmd_timeout_work);
+    /* _sync so a timeout handler already mid-fire can't clobber a state
+     * change a caller makes right after this returns - see the identical
+     * reasoning in behavior_rapid_fire.c. */
+    k_work_cancel_delayable_sync(&gcmd_timeout_work, &sync);
 }
 
 static void gcmd_timeout_handler(struct k_work *work) {
@@ -91,7 +96,15 @@ static void gcmd_timeout_handler(struct k_work *work) {
 }
 
 static void gcmd_arm_window(void) {
-    k_work_schedule(&gcmd_timeout_work, K_MSEC(CONFIG_ZMK_GAMING_CMD_WINDOW_MS));
+    /*
+     * reschedule (not schedule): schedule() is a no-op while a deadline is
+     * already pending, so the 2nd Down wouldn't actually push the window
+     * out - the whole Down-Down-trigger sequence would be capped at
+     * WINDOW_MS from the 1st Down instead of each step getting its own
+     * WINDOW_MS. reschedule() unconditionally resets the deadline from
+     * now, giving every step the full window.
+     */
+    k_work_reschedule(&gcmd_timeout_work, K_MSEC(CONFIG_ZMK_GAMING_CMD_WINDOW_MS));
 }
 
 static int gcmd_init(const struct device *dev) {
