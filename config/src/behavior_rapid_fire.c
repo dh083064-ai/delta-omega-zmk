@@ -77,6 +77,16 @@ static inline void rf_log_down_duration(uint32_t position, uint32_t down_us) {
     }
 }
 
+/*
+ * How long the finger actually held the physical key, press to release -
+ * distinct from the virtual DOWN duration above (which is per repeat
+ * cycle). One line per physical hold, meant to be captured over a real
+ * play session and post-processed for count/min/mean/median/p90/p95/max.
+ */
+static inline void rf_log_physical_hold(uint32_t position, uint32_t hold_us) {
+    LOG_INF("rf: physical hold = %uus (pos %d)", hold_us, position);
+}
+
 #define RF_MAX_POSITIONS 64
 
 struct rf_slot {
@@ -97,6 +107,10 @@ struct rf_slot {
      * in this hold session", so the diagnostic interval logging below
      * doesn't compare across two separate physical holds. */
     uint32_t last_press_cycles;
+    /* Cycle timestamp of the physical press (behavior_pressed), for the
+     * physical-hold-duration diagnostic - separate from last_press_cycles,
+     * which tracks the latest *virtual* repeat-cycle press instead. */
+    uint32_t physical_press_cycles;
 };
 
 static struct rf_slot rf_slots[RF_MAX_POSITIONS];
@@ -182,6 +196,11 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
 
     struct rf_slot *slot = &rf_slots[event.position];
 
+    /* Physical-hold-duration diagnostic: mark the true physical press
+     * moment before anything else (cancel/schedule overhead is a handful
+     * of us - see rf_log_cancel_wait - so this is effectively "now"). */
+    slot->physical_press_cycles = k_cycle_get_32();
+
     /*
      * _sync blocks until any in-flight handler actually finishes, unlike
      * plain cancel_delayable() (which per Zephyr's own docs may return
@@ -228,6 +247,8 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
     rf_log_cancel_wait(event.position, cancel_start);
+    rf_log_physical_hold(event.position,
+                         k_cyc_to_us_floor32(k_cycle_get_32() - slot->physical_press_cycles));
     rf_send_release(slot, event.position);
 
     return ZMK_BEHAVIOR_OPAQUE;
