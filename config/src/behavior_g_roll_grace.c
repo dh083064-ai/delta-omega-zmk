@@ -80,6 +80,12 @@ static bool g_direction_seen;
 static struct k_work_delayable g_grace_work;
 /* Persistent, not stack-local - see behavior_rapid_fire.c for why. */
 static struct k_work_sync g_grace_sync;
+/* DEBUG-only: physical hold duration fixed at the moment grace starts,
+ * and the cycle timestamp of the physical release itself - so either
+ * grace-ending path (timeout or direction) can report physical/added/
+ * total plus (for direction) exact grace-elapsed-so-far. */
+static uint32_t g_physical_elapsed_ms;
+static uint32_t g_release_cycles;
 
 static inline uint32_t groll_elapsed_ms(uint32_t cycles) {
     return k_cyc_to_ms_floor32(k_cycle_get_32() - cycles);
@@ -98,6 +104,9 @@ static void groll_grace_work_handler(struct k_work *work) {
         return;
     }
 
+    uint32_t added_ms = CONFIG_ZMK_G_ROLL_GRACE_MS;
+    LOG_INF("groll: physical=%ums added_grace=%ums total=%ums reason=timeout",
+            g_physical_elapsed_ms, added_ms, g_physical_elapsed_ms + added_ms);
     groll_send_release();
 }
 
@@ -115,8 +124,6 @@ static int groll_init(const struct device *dev) {
  * direction key's own down. No-op if G is IDLE.
  */
 static void groll_notice_direction(uint32_t direction_position) {
-    ARG_UNUSED(direction_position);
-
     if (g_state == GROLL_HELD) {
         g_direction_seen = true;
         return;
@@ -124,6 +131,12 @@ static void groll_notice_direction(uint32_t direction_position) {
 
     if (g_state == GROLL_GRACE) {
         k_work_cancel_delayable_sync(&g_grace_work, &g_grace_sync);
+
+        uint32_t added_ms = groll_elapsed_ms(g_release_cycles);
+        LOG_INF("groll: physical=%ums added_grace=%ums total=%ums reason=direction_after_release "
+                "pos=%d",
+                g_physical_elapsed_ms, added_ms, g_physical_elapsed_ms + added_ms,
+                direction_position);
         groll_send_release();
     }
 }
@@ -144,6 +157,7 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
         k_work_cancel_delayable_sync(&g_grace_work, &g_grace_sync);
         g_state = GROLL_HELD;
         g_direction_seen = false;
+        LOG_INF("groll: pending grace cancelled by repress");
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
@@ -171,12 +185,18 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
+    uint32_t elapsed_ms = groll_elapsed_ms(g_press_cycles);
+
     if (g_direction_seen) {
         /* Roll case: direction already happened during the hold. */
+        LOG_INF("groll: physical=%ums added_grace=0ms total=%ums reason=direction_before_release",
+                elapsed_ms, elapsed_ms);
         groll_send_release();
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
+    g_physical_elapsed_ms = elapsed_ms;
+    g_release_cycles = k_cycle_get_32();
     g_state = GROLL_GRACE;
     k_work_schedule(&g_grace_work, K_MSEC(CONFIG_ZMK_G_ROLL_GRACE_MS));
 
