@@ -1,0 +1,5 @@
+description: Gaming command state machine - Down-arrow side. Every press outputs Down immediately, except the 3rd press within the command window, which outputs C instead (Command B).
+
+compatible: "zmk,behavior-gaming-cmd-down"
+
+include: zero_param.yaml

@@ -1,0 +1,5 @@
+description: Gaming command state machine - trigger side. param1 = normal keycode sent when no command is pending, param2 = substitute keycode sent instead when the Down-arrow side has armed the command window (Command A).
+
+compatible: "zmk,behavior-gaming-cmd-trigger"
+
+include: two_param.yaml

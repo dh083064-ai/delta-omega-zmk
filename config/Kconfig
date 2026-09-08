@@ -42,4 +42,15 @@ config ZMK_SPACE_HT_RELEASE_GRACE_MS
       while the hold layer is active, the release is treated as switch
       chatter and the hold continues uninterrupted.
 
+config ZMK_GAMING_CMD_WINDOW_MS
+    int "Gaming command state machine: window to remember a pending Down-arrow sequence"
+    default 220
+    range 50 2000
+    help
+      How long the internal state machine remembers a pending down-arrow
+      -> down-arrow sequence (Command A/B on the Gaming layer) before
+      auto-resetting to idle. This only bounds how long the *state* is
+      remembered - every physical press still outputs its HID key
+      immediately, nothing is buffered or delayed.
+
 endmenu

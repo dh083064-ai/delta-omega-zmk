@@ -1,0 +1,5 @@
+description: Cleanse alternator - each physical press outputs LALT and F8 in alternation, one HID key per press, no waiting
+
+compatible: "zmk,behavior-cleanse-alt"
+
+include: zero_param.yaml
