@@ -9,6 +9,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/random/random.h>
+#include <zephyr/sys/time_units.h>
 
 #include <drivers/behavior.h>
 #include <zmk/behavior.h>
@@ -16,6 +17,29 @@
 #include <zmk/events/keycode_state_changed.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
+/*
+ * Diagnostic only: measures how long the two sync-cancels below actually
+ * block, so real-world worst case (e.g. mashing a rapid-fire key as fast
+ * as possible) can be checked against expectation instead of assumed.
+ * Compiles to nothing when CONFIG_LOG=n (release builds) - LOG_INF/LOG_DBG
+ * are no-op macros in that case, and rf_cancel_max_us is unused but
+ * harmless. To actually capture numbers, temporarily build with
+ * CONFIG_LOG=y (and CONFIG_ZMK_USB_LOGGING=y to get a COM port to read it
+ * from), tapping-term/level high enough for LOG_DBG if per-call detail is
+ * wanted - LOG_INF alone already reports every new observed max.
+ */
+static uint32_t rf_cancel_max_us;
+
+static inline void rf_log_cancel_wait(uint32_t position, uint32_t start_cycles) {
+    uint32_t elapsed_us = k_cyc_to_us_floor32(k_cycle_get_32() - start_cycles);
+
+    LOG_DBG("rf pos %d: cancel-sync wait = %uus", position, elapsed_us);
+    if (elapsed_us > rf_cancel_max_us) {
+        rf_cancel_max_us = elapsed_us;
+        LOG_INF("rf: new max cancel-sync wait = %uus (pos %d)", elapsed_us, position);
+    }
+}
 
 #define RF_MAX_POSITIONS 64
 
@@ -117,8 +141,10 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
      * never inside rf_repeat_work_handler/rf_release_work_handler
      * themselves - a work item must never sync-cancel itself.
      */
+    uint32_t cancel_start = k_cycle_get_32();
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
+    rf_log_cancel_wait(event.position, cancel_start);
     rf_send_release(slot);
 
     slot->encoded_keycode = binding->param1;
@@ -142,8 +168,10 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     struct rf_slot *slot = &rf_slots[event.position];
 
     slot->active = false;
+    uint32_t cancel_start = k_cycle_get_32();
     k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
     k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
+    rf_log_cancel_wait(event.position, cancel_start);
     rf_send_release(slot);
 
     return ZMK_BEHAVIOR_OPAQUE;
