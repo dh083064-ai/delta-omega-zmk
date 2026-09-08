@@ -22,6 +22,14 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 struct rf_slot {
     struct k_work_delayable repeat_work;
     struct k_work_delayable release_work;
+    /*
+     * Dedicated, persistent storage for each work item's sync-cancel -
+     * Zephyr requires this to outlive the call and never be shared
+     * between concurrent cancel/flush operations, so it can't be a
+     * function-local stack variable.
+     */
+    struct k_work_sync repeat_sync;
+    struct k_work_sync release_sync;
     uint32_t encoded_keycode;
     bool active;
     bool virtual_pressed;
@@ -96,7 +104,6 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     }
 
     struct rf_slot *slot = &rf_slots[event.position];
-    struct k_work_sync sync;
 
     /*
      * _sync blocks until any in-flight handler actually finishes, unlike
@@ -105,10 +112,13 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
      * this, a stale release_work that was already running when we cancel
      * it could still fire afterward, see virtual_pressed=true from THIS
      * new press, and release it early - or a stale repeat_work could
-     * inject an extra cycle into the new session.
+     * inject an extra cycle into the new session. Safe here because this
+     * runs in normal thread context (the keymap/behavior dispatch path),
+     * never inside rf_repeat_work_handler/rf_release_work_handler
+     * themselves - a work item must never sync-cancel itself.
      */
-    k_work_cancel_delayable_sync(&slot->repeat_work, &sync);
-    k_work_cancel_delayable_sync(&slot->release_work, &sync);
+    k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
+    k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
     rf_send_release(slot);
 
     slot->encoded_keycode = binding->param1;
@@ -130,11 +140,10 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     }
 
     struct rf_slot *slot = &rf_slots[event.position];
-    struct k_work_sync sync;
 
     slot->active = false;
-    k_work_cancel_delayable_sync(&slot->repeat_work, &sync);
-    k_work_cancel_delayable_sync(&slot->release_work, &sync);
+    k_work_cancel_delayable_sync(&slot->repeat_work, &slot->repeat_sync);
+    k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
     rf_send_release(slot);
 
     return ZMK_BEHAVIOR_OPAQUE;

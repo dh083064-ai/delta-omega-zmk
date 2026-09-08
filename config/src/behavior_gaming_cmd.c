@@ -73,6 +73,13 @@ enum gcmd_state {
 
 static enum gcmd_state gcmd_state = GCMD_IDLE;
 static struct k_work_delayable gcmd_timeout_work;
+/*
+ * Dedicated, persistent storage for the sync-cancel below - Zephyr
+ * requires this to outlive the call and never be shared between
+ * concurrent cancel/flush operations, so it can't be a function-local
+ * stack variable.
+ */
+static struct k_work_sync gcmd_timeout_sync;
 
 static uint32_t gcmd_down_active_code;
 static bool gcmd_down_virtual_pressed;
@@ -81,13 +88,16 @@ static uint32_t gcmd_trigger_active_code;
 static bool gcmd_trigger_virtual_pressed;
 
 static void gcmd_reset(void) {
-    struct k_work_sync sync;
-
     gcmd_state = GCMD_IDLE;
-    /* _sync so a timeout handler already mid-fire can't clobber a state
+    /*
+     * _sync so a timeout handler already mid-fire can't clobber a state
      * change a caller makes right after this returns - see the identical
-     * reasoning in behavior_rapid_fire.c. */
-    k_work_cancel_delayable_sync(&gcmd_timeout_work, &sync);
+     * reasoning in behavior_rapid_fire.c. Safe here because every caller
+     * (the two behavior press handlers below, and the position listener)
+     * runs in normal thread context, never inside gcmd_timeout_handler
+     * itself - a work item must never sync-cancel itself.
+     */
+    k_work_cancel_delayable_sync(&gcmd_timeout_work, &gcmd_timeout_sync);
 }
 
 static void gcmd_timeout_handler(struct k_work *work) {
