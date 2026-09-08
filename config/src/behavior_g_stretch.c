@@ -59,6 +59,9 @@ struct gstretch_slot {
     uint32_t encoded_keycode;
     uint32_t press_cycles;
     enum gstretch_state state;
+    /* DEBUG-only: physical hold at the moment release was scheduled, so
+     * the delayed-fire log line can report physical vs. HID vs. added. */
+    uint32_t debug_physical_elapsed_ms;
 };
 
 static struct gstretch_slot gstretch_slots[GSTRETCH_MAX_POSITIONS];
@@ -81,6 +84,9 @@ static void gstretch_release_work_handler(struct k_work *work) {
         return;
     }
 
+    LOG_INF("gstretch: physical=%ums hid=%ums added=%ums", slot->debug_physical_elapsed_ms,
+            CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS,
+            CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS - slot->debug_physical_elapsed_ms);
     gstretch_send_release(slot);
 }
 
@@ -114,6 +120,7 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
          */
         k_work_cancel_delayable_sync(&slot->release_work, &slot->release_sync);
         slot->state = GSTRETCH_HELD;
+        LOG_INF("gstretch: pending release cancelled by repress (pos %d)", event.position);
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
@@ -147,10 +154,12 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
 
     uint32_t elapsed_ms = gstretch_elapsed_ms(slot->press_cycles);
     if (elapsed_ms >= CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS) {
+        LOG_INF("gstretch: physical=%ums hid=%ums added=0ms", elapsed_ms, elapsed_ms);
         gstretch_send_release(slot);
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
+    slot->debug_physical_elapsed_ms = elapsed_ms;
     slot->state = GSTRETCH_RELEASE_PENDING;
     k_work_schedule(&slot->release_work, K_MSEC(CONFIG_ZMK_G_STRETCH_MIN_HOLD_MS - elapsed_ms));
 
