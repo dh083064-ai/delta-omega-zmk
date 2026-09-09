@@ -311,6 +311,23 @@
             ignored-layers = <MOUSE NAV FN>;
         };
 
+        /*
+         * Toggle the FN layer; typing other keys while it's on cancels it.
+         * Cloned from smart_mouse above - same tri-state/auto-exit pattern,
+         * entered via combo_fn (physical R+T) instead of a thumb hold-tap.
+         * ignored-key-positions = FN's own real (non-trans) bindings, plus
+         * combo_fn's own trigger positions (3 4), plus 30 (SMART_NUM) so
+         * holding it to reach the FN+NUM -> SYS conditional layer doesn't
+         * cancel FN first.
+         */
+        smart_fn: smart_fn {
+            compatible = "zmk,behavior-tri-state";
+            #binding-cells = <0>;
+            bindings = <&tog FN>, <&none>, <&tog FN>;
+            ignored-key-positions = <0 1 2 3 4 6 7 8 10 11 12 13 16 17 18 20 21 22 23 25 26 27 30 32 33>;
+            ignored-layers = <FN NAV MOUSE>;
+        };
+
         /* Tap: comma | Shift+tap: semicolon | Ctrl+Shift+tap: less-than. */
         comma_inner_morph: comma_inner_morph {
             compatible = "zmk,behavior-mod-morph";
@@ -494,6 +511,13 @@
             key-positions = <2 3>;
             layers = <KOR ENG NAV NUM>;
             bindings = <&smart_mouse>;
+        };
+        /* Physical R+T (C+V on ENG/Gallium): toggle FN, same as combo_mouse. */
+        combo_fn {
+            timeout-ms = <18>;
+            key-positions = <3 4>;
+            layers = <KOR ENG NAV NUM>;
+            bindings = <&smart_fn>;
         };
 
         /* Left home row (D+F): exclamation mark. */
@@ -738,7 +762,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &smart_num NUM 0   &space_ht FN SPACE   &magic_shift_kor LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM 0   &kp SPACE   &magic_shift_kor LSHFT 0   &lt NAV ENTER
             >;
         };
 
@@ -748,7 +772,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &smart_num NUM 0   &space_ht FN SPACE   &magic_shift LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM 0   &kp SPACE   &magic_shift LSHFT 0   &lt NAV ENTER
             >;
         };
 
