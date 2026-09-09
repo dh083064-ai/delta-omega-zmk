@@ -141,6 +141,18 @@
         #binding-cells = <1>;
     };
 
+    /*
+     * EXPERIMENTAL (gburst branch only): A/B alternative to rapid-fire
+     * for G specifically - see behavior_g_burst.c. Same interval/tap
+     * timing as plain rapid-fire (unchanged Kconfig), just capped to run
+     * for at most CONFIG_ZMK_G_BURST_MAX_MS from the physical press.
+     * Every other rapid-fire key (&rf ...) is untouched.
+     */
+    gburst: g_burst {
+        compatible = "zmk,behavior-g-burst";
+        #binding-cells = <1>;
+    };
+
     /* Gaming layer 7: alternates LALT/F8 on the Cleanse thumb key. */
     cleanse_alt: cleanse_alt {
         compatible = "zmk,behavior-cleanse-alt";
@@ -822,7 +834,10 @@
          * IJKL physical positions carry arrows (I=up, J=left, K=down,
          * L=right); the alpha letters I/J/K/L that displaced move to
          * ;/,/./  so they're still reachable. rf = rapid-fire (randomized
-         * hold-to-spam).
+         * hold-to-spam). G (pos14) uses gburst instead - EXPERIMENTAL,
+         * this branch's A/B test of a max-duration-capped rapid-fire for
+         * G specifically (see behavior_g_burst.c). Every other rf key,
+         * including LEFT/RIGHT, is unchanged.
          *
          * A (pos10) and Down (pos17) also drive the Down-Down-A/Down
          * command state machine (gcmd_trigger/gcmd_down, see
@@ -837,7 +852,7 @@
         GAMING {
             bindings = <
 &rf Q          &rf W          &rf E           &kp R            &kp T           &kp Y           &rf U           &kp UP          &kp O           &kp P
-&gcmd_trigger A N9   &kp S    &kp D           &kp F            &rf G           &rf H           &kp LEFT        &gcmd_down      &kp RIGHT       &kp I
+&gcmd_trigger A N9   &kp S    &kp D           &kp F            &gburst G       &rf H           &kp LEFT        &gcmd_down      &kp RIGHT       &kp I
 &kp Z          &rf X          &rf C           &kp V            &rf B           &rf N           &kp M           &kp J           &kp K           &kp L
                                                     &cleanse_alt   &kp SPACE   &gaming_ctrl_esc ESC 0   &lt MUTIL RET
             >;

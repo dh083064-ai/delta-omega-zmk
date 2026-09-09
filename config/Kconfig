@@ -58,4 +58,17 @@ config ZMK_GAMING_CMD_WINDOW_MS
       remembered - every physical press still outputs its HID key
       immediately, nothing is buffered or delayed.
 
+config ZMK_G_BURST_MAX_MS
+    int "G burst: maximum repeat runtime from physical press, in milliseconds"
+    default 170
+    range 50 2000
+    help
+      Experimental rapid-fire alternative for a single key (gburst
+      branch only). Identical repeat behavior to plain rapid-fire
+      (reuses CONFIG_ZMK_RAPID_FIRE_MIN/MAX_INTERVAL_MS and
+      CONFIG_ZMK_RAPID_FIRE_TAP_MS unchanged), except the repeat cycle
+      auto-stops this many ms after the physical press even if the key
+      is still physically held. burst_runtime_ms =
+      min(physical_hold_ms, this). A/B candidates: 140/170/200.
+
 endmenu

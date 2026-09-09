@@ -1,0 +1,5 @@
+description: "G burst - identical repeat behavior to plain rapid-fire (same interval/tap-width Kconfig, unchanged), except the repeat cycle auto-stops CONFIG_ZMK_G_BURST_MAX_MS after the physical press even if the key is still held. Physical release always stops the burst immediately, same as rapid-fire. Direction keys and other keys have no effect on this behavior in this first version."
+
+compatible: "zmk,behavior-g-burst"
+
+include: one_param.yaml
