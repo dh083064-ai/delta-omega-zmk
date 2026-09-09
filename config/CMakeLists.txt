@@ -4,7 +4,4 @@ if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
   target_sources(app PRIVATE src/behavior_rapid_fire.c)
   target_sources(app PRIVATE src/behavior_cleanse_alt.c)
   target_sources(app PRIVATE src/behavior_gaming_cmd.c)
-  # TEMPORARY (this branch, DEBUG measurement round only) - pure listener,
-  # touches no existing source/keymap/Kconfig. See file header.
-  target_sources(app PRIVATE src/debug_input_logger.c)
 endif()
