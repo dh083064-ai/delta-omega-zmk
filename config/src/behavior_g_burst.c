@@ -90,7 +90,15 @@ static void gburst_send_release(void) {
     raise_zmk_keycode_state_changed_from_encoded(g_encoded_keycode, false, k_uptime_get());
 }
 
-static void gburst_stop(void) {
+static void gburst_stop(const char *reason) {
+    uint32_t physical_hold_ms = gburst_elapsed_ms(g_press_cycles);
+    uint32_t burst_runtime_ms = (physical_hold_ms < CONFIG_ZMK_G_BURST_MAX_MS)
+                                    ? physical_hold_ms
+                                    : CONFIG_ZMK_G_BURST_MAX_MS;
+
+    LOG_INF("gburst: physical=%ums burst_runtime=%ums retries=%u reason=%s", physical_hold_ms,
+            burst_runtime_ms, g_retry_count, reason);
+
     g_active = false;
     k_work_cancel_delayable_sync(&g_repeat_work, &g_repeat_sync);
     k_work_cancel_delayable_sync(&g_release_work, &g_release_sync);
@@ -125,7 +133,7 @@ static void gburst_cap_work_handler(struct k_work *work) {
         return;
     }
 
-    gburst_stop();
+    gburst_stop("max_burst");
 }
 
 static int gburst_init(const struct device *dev) {
@@ -174,7 +182,7 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
-    gburst_stop();
+    gburst_stop("physical_release");
 
     return ZMK_BEHAVIOR_OPAQUE;
 }
