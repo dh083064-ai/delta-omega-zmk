@@ -47,6 +47,7 @@ static bool g_virtual_pressed;
 static uint32_t g_encoded_keycode;
 static uint32_t g_press_cycles;
 static uint32_t g_retry_count;
+static uint32_t g_session_id;
 
 static struct k_work_delayable g_repeat_work;
 static struct k_work_delayable g_release_work;
@@ -90,20 +91,51 @@ static void gburst_send_release(void) {
     raise_zmk_keycode_state_changed_from_encoded(g_encoded_keycode, false, k_uptime_get());
 }
 
-static void gburst_stop(const char *reason) {
+/*
+ * Finishes the current session: logs the summary line, marks it inactive,
+ * and (if a virtual key is currently down) always sends its release -
+ * shared by both stop paths below, but contains no cancel_sync calls
+ * itself, so it carries no context assumptions of its own.
+ */
+static void gburst_log_and_finish(const char *reason) {
     uint32_t physical_hold_ms = gburst_elapsed_ms(g_press_cycles);
     uint32_t burst_runtime_ms = (physical_hold_ms < CONFIG_ZMK_G_BURST_MAX_MS)
                                     ? physical_hold_ms
                                     : CONFIG_ZMK_G_BURST_MAX_MS;
 
-    LOG_INF("gburst: physical=%ums burst_runtime=%ums retries=%u reason=%s", physical_hold_ms,
-            burst_runtime_ms, g_retry_count, reason);
+    LOG_INF("gburst: SESSION_STOP id=%u physical=%ums burst_runtime=%ums retries=%u reason=%s",
+            g_session_id, physical_hold_ms, burst_runtime_ms, g_retry_count, reason);
 
     g_active = false;
+    gburst_send_release();
+}
+
+/*
+ * Thread context (physical release, on_keymap_binding_released) - never
+ * runs as any of these work items' own handler, so cancelling all three
+ * pending work items here is always safe.
+ */
+static void gburst_stop_from_thread(const char *reason) {
     k_work_cancel_delayable_sync(&g_repeat_work, &g_repeat_sync);
     k_work_cancel_delayable_sync(&g_release_work, &g_release_sync);
     k_work_cancel_delayable_sync(&g_cap_work, &g_cap_sync);
-    gburst_send_release();
+    gburst_log_and_finish(reason);
+}
+
+/*
+ * g_cap_work's OWN handler context (gburst_cap_work_handler, running on
+ * the system workqueue). Must never sync-cancel g_cap_work itself here -
+ * that's exactly the self-cancel deadlock this function exists to avoid
+ * (a work item waiting, from inside its own handler, for itself to
+ * become idle can never be signalled, since it won't return until this
+ * call does). repeat_work/release_work are different work items - safe
+ * to cancel even from here, since the system workqueue is single
+ * threaded and neither of them can be running concurrently with this.
+ */
+static void gburst_stop_from_cap_handler(void) {
+    k_work_cancel_delayable_sync(&g_repeat_work, &g_repeat_sync);
+    k_work_cancel_delayable_sync(&g_release_work, &g_release_sync);
+    gburst_log_and_finish("max_burst");
 }
 
 static void gburst_release_work_handler(struct k_work *work) {
@@ -133,7 +165,7 @@ static void gburst_cap_work_handler(struct k_work *work) {
         return;
     }
 
-    gburst_stop("max_burst");
+    gburst_stop_from_cap_handler();
 }
 
 static int gburst_init(const struct device *dev) {
@@ -148,16 +180,31 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
                                      struct zmk_behavior_binding_event event) {
     ARG_UNUSED(event);
 
+    if (g_active) {
+        /* A session was still open when this new press arrived - it
+         * never got a normal SESSION_STOP (physical_release/max_burst).
+         * Log it explicitly instead of silently discarding it, so a
+         * fast-repress/chatter case is never an invisible gap in the
+         * session log. */
+        LOG_INF("gburst: SESSION_ABORT id=%u reason=repress", g_session_id);
+    }
+
     /*
      * Same up-front sync-cancel-then-reset as behavior_rapid_fire.c's
      * on_keymap_binding_pressed, for a fast repress: guarantees no stale
      * repeat/release/cap handler from a previous session can touch this
-     * new one after this call returns.
+     * new one after this call returns. Safe here - this runs in normal
+     * thread context (keymap/behavior dispatch), never inside
+     * gburst_cap_work_handler/gburst_repeat_work_handler/
+     * gburst_release_work_handler themselves.
      */
     k_work_cancel_delayable_sync(&g_repeat_work, &g_repeat_sync);
     k_work_cancel_delayable_sync(&g_release_work, &g_release_sync);
     k_work_cancel_delayable_sync(&g_cap_work, &g_cap_sync);
     gburst_send_release();
+
+    g_session_id++;
+    LOG_INF("gburst: SESSION_START id=%u", g_session_id);
 
     g_encoded_keycode = binding->param1;
     g_press_cycles = k_cycle_get_32();
@@ -182,7 +229,7 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
         return ZMK_BEHAVIOR_OPAQUE;
     }
 
-    gburst_stop("physical_release");
+    gburst_stop_from_thread("physical_release");
 
     return ZMK_BEHAVIOR_OPAQUE;
 }
