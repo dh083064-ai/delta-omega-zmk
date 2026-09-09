@@ -47,6 +47,17 @@ config ZMK_SPACE_HT_RELEASE_GRACE_MS
       while the hold layer is active, the release is treated as switch
       chatter and the hold continues uninterrupted.
 
+config ZMK_CHATTER_GUARD_MS
+    int "Chatter guard: minimum gap between a release and the next accepted press on the same position"
+    default 25
+    range 5 200
+    help
+      A press arriving within this window of the last accepted release on
+      the same physical position is treated as switch chatter and its
+      entire press/release pair (not just the press) is dropped. Hold
+      duration is otherwise untouched - HID down/up track the physical
+      press/release exactly, so OS auto-repeat still works normally.
+
 config ZMK_GAMING_CMD_WINDOW_MS
     int "Gaming command state machine: window to remember a pending Down-arrow sequence"
     default 220

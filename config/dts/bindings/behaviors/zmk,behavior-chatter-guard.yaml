@@ -1,0 +1,5 @@
+description: Chatter-guard key behavior (passes hold/release straight through as HID down/up; drops a press+release pair that lands within CONFIG_ZMK_CHATTER_GUARD_MS of the previous release on the same position)
+
+compatible: "zmk,behavior-chatter-guard"
+
+include: one_param.yaml
