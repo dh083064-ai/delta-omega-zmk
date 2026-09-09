@@ -58,4 +58,32 @@ config ZMK_GAMING_CMD_WINDOW_MS
       remembered - every physical press still outputs its HID key
       immediately, nothing is buffered or delayed.
 
+config ZMK_G_ANCHOR_MIN_TOTAL_HOLD_MS
+    int "G direction-anchored hold: minimum total HID hold from physical press, in milliseconds"
+    default 170
+    range 50 1000
+    help
+      Experimental rapid-fire alternative for a single key (ganchor
+      branch only). release_target = clamp(dir_press_relative_ms +
+      DIR_TAIL_MS, MIN_TOTAL_HOLD_MS, MAX_TOTAL_HOLD_MS), measured from
+      the physical press. This is the floor of that clamp.
+
+config ZMK_G_ANCHOR_DIR_TAIL_MS
+    int "G direction-anchored hold: tail after the direction press, in milliseconds"
+    default 30
+    range 0 500
+    help
+      How long G's HID hold should extend past the (first) direction
+      key's press before the clamp to MIN/MAX_TOTAL_HOLD_MS is applied.
+
+config ZMK_G_ANCHOR_MAX_TOTAL_HOLD_MS
+    int "G direction-anchored hold: maximum total HID hold from physical press, in milliseconds"
+    default 200
+    range 50 2000
+    help
+      Ceiling of the release_target clamp - also how long G waits for a
+      direction key if none has been seen yet by the time it's
+      physically released. If the physical hold alone already reaches
+      this, G releases immediately (release_reason=physical_long_hold).
+
 endmenu

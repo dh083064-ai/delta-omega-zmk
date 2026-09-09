@@ -1,0 +1,5 @@
+description: "G direction-anchored hold - press emits HID down immediately. A LEFT/RIGHT press seen while G is still physically held only sets a flag (G is not touched, direction proceeds with zero delay). On physical release, the eventual HID-up time is release_target = clamp(dir_press_relative_ms + DIR_TAIL_MS, MIN_TOTAL_HOLD_MS, MAX_TOTAL_HOLD_MS) measured from the physical press; if no direction has been seen yet, G waits up to MAX_TOTAL_HOLD_MS for one. No repeat/rapid-fire edges - one press, one (possibly delayed) release per physical session. Direction-key overlap with G is intentional, not avoided."
+
+compatible: "zmk,behavior-g-anchor"
+
+include: one_param.yaml

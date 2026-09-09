@@ -141,6 +141,18 @@
         #binding-cells = <1>;
     };
 
+    /*
+     * EXPERIMENTAL (ganchor branch only): A/B alternative to rapid-fire
+     * for G specifically - see behavior_g_anchor.c. LEFT/RIGHT are left
+     * as plain &kp (untouched) - a direction press only anchors where
+     * G's HID release lands, it never triggers or delays anything.
+     * Every other rapid-fire key (&rf ...) is untouched too.
+     */
+    ganchor: g_anchor {
+        compatible = "zmk,behavior-g-anchor";
+        #binding-cells = <1>;
+    };
+
     /* Gaming layer 7: alternates LALT/F8 on the Cleanse thumb key. */
     cleanse_alt: cleanse_alt {
         compatible = "zmk,behavior-cleanse-alt";
@@ -822,7 +834,12 @@
          * IJKL physical positions carry arrows (I=up, J=left, K=down,
          * L=right); the alpha letters I/J/K/L that displaced move to
          * ;/,/./  so they're still reachable. rf = rapid-fire (randomized
-         * hold-to-spam).
+         * hold-to-spam). G (pos14) uses ganchor instead - EXPERIMENTAL,
+         * this branch's A/B test of a direction-anchored hold
+         * alternative to rapid-fire (see behavior_g_anchor.c). LEFT/
+         * RIGHT (pos16/18) stay plain &kp, untouched - ganchor only
+         * observes their press timing, never delays or reorders them.
+         * Every other rf key is unchanged.
          *
          * A (pos10) and Down (pos17) also drive the Down-Down-A/Down
          * command state machine (gcmd_trigger/gcmd_down, see
@@ -837,7 +854,7 @@
         GAMING {
             bindings = <
 &rf Q          &rf W          &rf E           &kp R            &kp T           &kp Y           &rf U           &kp UP          &kp O           &kp P
-&gcmd_trigger A N9   &kp S    &kp D           &kp F            &rf G           &rf H           &kp LEFT        &gcmd_down      &kp RIGHT       &kp I
+&gcmd_trigger A N9   &kp S    &kp D           &kp F            &ganchor G      &rf H           &kp LEFT        &gcmd_down      &kp RIGHT       &kp I
 &kp Z          &rf X          &rf C           &kp V            &rf B           &rf N           &kp M           &kp J           &kp K           &kp L
                                                     &cleanse_alt   &kp SPACE   &gaming_ctrl_esc ESC 0   &lt MUTIL RET
             >;
