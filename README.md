@@ -214,3 +214,32 @@ new: balanced       + require-prior-idle 120 ms
 
 This should reduce accidental modifier activation while still being faster
 than the older 150 ms setup.
+
+
+## Experimental branch status (esb-tdma-pcbang-gaming-* family)
+
+A/B alternatives to plain rapid-fire were tried for the Gaming layer's G
+key, each on its own branch off `esb-tdma-pcbang-gaming` (the stable
+branch, unmodified by any of these). All are kept for reference only -
+none are in active use or further development.
+
+```text
+gstretch  (150ms minimum-hold stretch)  - kept for reference
+glatch    (180ms latch-until-direction) - kept for reference
+groll     (50ms roll-aware grace)       - kept for reference
+ganchor   (170/30/200ms direction-anchored hold) - kept for reference
+gburst    (170ms max-duration-capped rapid-fire)
+          status: ABANDONED
+          reason: a self-cancel deadlock (a work item synchronously
+          cancelling itself from inside its own handler) was found and
+          fixed, but full keyboard freeze (requiring a USB replug) and
+          stuck keys still reproduced under rapid G tapping afterward -
+          there is at least one more concurrency issue in this design
+          that wasn't isolated. Not safe for real use. The branch tip
+          is left in a clean release-config state (logging off), but
+          received no further debugging past the one fix commit.
+```
+
+Real usage and any further Gaming-layer development should stay on
+`esb-tdma-pcbang-gaming` (stable rapid-fire) unless one of these is
+specifically revisited.
