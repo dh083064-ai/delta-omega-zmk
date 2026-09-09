@@ -102,15 +102,49 @@ static uint32_t g_press_cycles;
 static bool g_dir_seen;
 static uint32_t g_dir_press_cycles;
 static enum ganchor_reason g_pending_reason;
+static uint32_t g_pending_target_ms;
 static struct k_work_delayable g_release_work;
 /* Persistent, not stack-local - see behavior_rapid_fire.c for why. */
 static struct k_work_sync g_release_sync;
+
+/* DEBUG-only: physical hold at the moment of physical release (fixed
+ * once, used by every release path's log line), whether the direction
+ * anchor was seen before or after that release, and its relative
+ * timing - all purely for the log line, never used for control flow. */
+static uint32_t g_debug_physical_hold_ms;
+static bool g_debug_dir_before_release;
+static uint32_t g_debug_dir_rel_ms;
 
 static inline uint32_t ganchor_elapsed_ms(uint32_t cycles) {
     return k_cyc_to_ms_floor32(k_cycle_get_32() - cycles);
 }
 
+static const char *ganchor_reason_str(enum ganchor_reason reason) {
+    switch (reason) {
+    case GANCHOR_REASON_MIN_TOTAL:
+        return "min_total";
+    case GANCHOR_REASON_DIR_TAIL:
+        return "dir_tail";
+    case GANCHOR_REASON_MAX_TOTAL:
+        return "max_total";
+    case GANCHOR_REASON_PHYSICAL_LONG_HOLD:
+        return "physical_long_hold";
+    default:
+        return "none";
+    }
+}
+
 static void ganchor_send_release(void) {
+    uint32_t hid_ms = ganchor_elapsed_ms(g_press_cycles);
+    uint32_t added_ms = (hid_ms > g_debug_physical_hold_ms) ? hid_ms - g_debug_physical_hold_ms : 0;
+
+    LOG_INF("ganchor: physical=%ums dir_seen=%s dir_before_after=%s dir_rel=%ums target=%ums "
+            "hid=%ums added=%ums reason=%s",
+            g_debug_physical_hold_ms, g_dir_seen ? "yes" : "no",
+            g_dir_seen ? (g_debug_dir_before_release ? "before" : "after") : "n/a",
+            g_dir_seen ? g_debug_dir_rel_ms : 0, g_pending_target_ms, hid_ms, added_ms,
+            ganchor_reason_str(g_pending_reason));
+
     raise_zmk_keycode_state_changed_from_encoded(g_encoded_keycode, false, k_uptime_get());
     g_state = GANCHOR_IDLE;
 }
@@ -146,6 +180,8 @@ static void ganchor_recompute(void) {
         target = CONFIG_ZMK_G_ANCHOR_MAX_TOTAL_HOLD_MS;
         g_pending_reason = GANCHOR_REASON_MAX_TOTAL;
     }
+
+    g_pending_target_ms = target;
 
     if (elapsed_now >= target) {
         ganchor_send_release();
@@ -193,6 +229,8 @@ static int ganchor_position_state_changed_listener(const zmk_event_t *eh) {
 
     g_dir_seen = true;
     g_dir_press_cycles = k_cycle_get_32();
+    g_debug_dir_before_release = (g_state == GANCHOR_HELD);
+    g_debug_dir_rel_ms = k_cyc_to_ms_floor32(g_dir_press_cycles - g_press_cycles);
 
     if (g_state == GANCHOR_PENDING) {
         ganchor_recompute();
@@ -221,6 +259,8 @@ static int on_keymap_binding_pressed(struct zmk_behavior_binding *binding,
          * dir_seen both reset.
          */
         k_work_cancel_delayable_sync(&g_release_work, &g_release_sync);
+        LOG_INF("ganchor: physical_so_far=%ums pending_target_was=%ums reason=repress_merge",
+                ganchor_elapsed_ms(g_press_cycles), g_pending_target_ms);
         g_state = GANCHOR_HELD;
         g_press_cycles = k_cycle_get_32();
         g_dir_seen = false;
@@ -252,9 +292,11 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
     }
 
     uint32_t elapsed_ms = ganchor_elapsed_ms(g_press_cycles);
+    g_debug_physical_hold_ms = elapsed_ms;
 
     if (elapsed_ms >= CONFIG_ZMK_G_ANCHOR_MAX_TOTAL_HOLD_MS) {
         g_pending_reason = GANCHOR_REASON_PHYSICAL_LONG_HOLD;
+        g_pending_target_ms = elapsed_ms;
         ganchor_send_release();
         return ZMK_BEHAVIOR_OPAQUE;
     }
