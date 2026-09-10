@@ -34,6 +34,14 @@ init:
 # draw/delta_omega.svg. Run this any time the keymap changes and you
 # want the diagram to match - nothing is cached, every run reparses the
 # real .keymap file.
+#
+# Combos are pulled off every individual layer and consolidated onto
+# one dedicated "Combos" section at the end (via --virtual-layers plus
+# reassigning every combo's target layer to it) - same technique
+# urob/zmk-config's own Justfile uses for draw/base.svg, so the KOR/ENG/
+# NAV/etc. sections stay as clean single-purpose key diagrams instead of
+# each carrying its own scatter of combo boxes.
 draw:
-    {{keymap_bin}} -c keymap_drawer.config.yaml parse -z config/delta_omega.keymap -l {{layer_names}} -c 5 -o draw/delta_omega.yaml
+    {{keymap_bin}} -c keymap_drawer.config.yaml parse -z config/delta_omega.keymap -l {{layer_names}} -c 5 --virtual-layers Combos -o draw/delta_omega.yaml
+    {{venv_python}} draw/_reassign_combos.py draw/delta_omega.yaml
     {{keymap_bin}} -c keymap_drawer.config.yaml draw draw/delta_omega.yaml --ortho-layout '{{ortho_layout}}' -o draw/delta_omega.svg

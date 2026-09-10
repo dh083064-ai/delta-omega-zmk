@@ -1,274 +1,207 @@
-# keymap-drawer settings for this project. Dumped from `keymap dump-config`
-# (keymap-drawer 0.23.0) and hand-tweaked from there - see `just draw` in
-# the justfile for how this gets used. Physical layout isn't set here since
-# keymap-drawer has no field for it in this config; it's passed as
-# --ortho-layout on the `keymap draw` command line instead (no QMK/ZMK
-# catalog entry exists for this board, so ortho params - 3 rows x 5 columns
-# per hand + 2 thumbs per hand, matching this project's own 0-33 position
-# numbering - stand in for a real physical layout file).
+# keymap-drawer settings for this project, modeled directly on
+# urob/zmk-config's draw/config.yaml (https://github.com/urob/zmk-config)
+# rather than keymap-drawer's own defaults - see `just draw` in the
+# justfile for how this gets used.
+#
+# Physical layout isn't set here since keymap-drawer has no field for it
+# in this config file; it's passed as --ortho-layout on the `keymap
+# draw` command line instead. urob's own config draws against a real
+# QMK-cataloged board (`-k ferris/sweep`), which is not an option here -
+# there's no catalog entry for this custom board - so an ortho layout
+# (3 rows x 5 columns per hand + 2 thumbs per hand, matching this
+# project's own 0-33 position numbering) stands in for it. Unlike the
+# previous version of this file, key_w/key_h/outer_pad/etc. are left at
+# (or set to) the same values urob uses rather than inflated - the
+# "spacious, uncluttered" look in base.svg comes from restrained
+# typography and a sparse raw_binding_map, not from bigger keys.
+parse_config:
+  # Trimmed WAY down from a previous, denser version of this file: only
+  # entries needed to replace a raw "&behavior_name" that keymap-drawer
+  # can't resolve on its own. One key = one short label, no invented
+  # secondary "badge" tags (RF/cmd/Cleanse/Swap etc.) - if a key needs
+  # more explanation than its own face can carry, that belongs in prose
+  # (README/comments), not jammed into the SVG. Native ZMK behaviors
+  # (&mo/&lt/&tog/&kp, hold-taps including HRM) already render correctly
+  # with no map entry at all and aren't listed here.
+  raw_binding_map:
+    # Rapid-fire (Gaming/MUTIL, all 14 targets): just the output key,
+    # nothing else - which keys rapid-fire is documented in prose
+    # elsewhere, not on every keycap.
+    "&rf Q": Q
+    "&rf W": W
+    "&rf E": E
+    "&rf U": U
+    "&rf G": G
+    "&rf H": H
+    "&rf X": X
+    "&rf C": C
+    "&rf B": B
+    "&rf N": N
+    "&rf N1": "1"
+    "&rf N2": "2"
+    "&rf N3": "3"
+    "&rf APOS": "'"
+    "&smart_fn": FN
+    "&smart_mouse": Mouse
+    "&num_dance": Num
+    "&gcmd_down": Down
+    "&gcmd_trigger A N9": A
+    "&cleanse_alt": Alt/F8
+    "&ctrl_both": L+R Ctrl
+    "&swapper": Alt+Tab
+    # Space chatter-guard - a test behavior with no long-term intent to
+    # keep it (see project notes), so just enough of a label that
+    # "&cguard" doesn't show up raw; not worth more than that.
+    "&cguard SPACE": SPACE
+    "&shift_repeat": Shift
+    # Generic ZMK behaviors, mapped the same way urob's own config maps
+    # them (same behaviors/params, not project-specific).
+    "&sys_reset": Reset
+    "&bootloader": Boot
+    "&caps_word": Caps Word
+    "&mkp LCLK": Left Click
+    "&mkp RCLK": Right Click
+    "&mkp MCLK": Middle Click
+    "&mmv MOVE_UP": Mouse ↑
+    "&mmv MOVE_DOWN": Mouse ↓
+    "&mmv MOVE_LEFT": Mouse ←
+    "&mmv MOVE_RIGHT": Mouse →
+    "&msc SCRL_UP": Scroll ↑
+    "&msc SCRL_DOWN": Scroll ↓
+    "&msc SCRL_LEFT": Scroll ←
+    "&msc SCRL_RIGHT": Scroll →
+  # Blank instead of a glyph - the previous version of this file had a
+  # mojibake "??" here (an encoding accident from a prior edit), which
+  # is exactly the kind of broken character this project doesn't want
+  # showing up in the SVG. urob's own config does the same thing.
+  trans_legend: { t: "", type: trans }
+  # Shortens HRM hold-labels and a few other keycodes the same way
+  # urob's config does (LALT/LCTRL/... -> Alt/Ctrl/...) - same
+  # behaviors/params as theirs, copied as-is.
+  zmk_keycode_map:
+    LALT: Alt
+    RALT: Alt
+    LCTRL: Ctrl
+    RCTRL: Ctrl
+    LGUI: Gui
+    RGUI: Gui
+    LSHFT: Shift
+    RSHFT: Shift
+    BSPC: Bspc
+    DEL: Del
+    ESC: Esc
+    RET: Enter
+    SPACE: Spc
+    TAB: Tab
+    PG_UP: PgUp
+    PG_DN: PgDn
+    INS: Ins
+    HOME: Home
+    END: End
+    UP: "↑"
+    DOWN: "↓"
+    LEFT: "←"
+    RIGHT: "→"
+    K_CANCEL: Cancel
+    C_MUTE: Mute
+    C_PP: Play
+    C_VOL_UP: "Vol+"
+    C_VOL_DN: "Vol-"
+    C_NEXT: Next
+    C_PREV: Prev
+
 draw_config:
-  key_w: 60.0
-  key_h: 56.0
-  split_gap: 30.0
-  combo_w: 28.0
-  combo_h: 26.0
-  key_rx: 6.0
-  key_ry: 6.0
+  # Matches urob's own choices exactly - see draw/config.yaml in
+  # urob/zmk-config. key_w/key_h/combo_w/combo_h/n_columns are left at
+  # keymap-drawer's own defaults (60/56/28/26/1) rather than overridden,
+  # same as urob's config leaves them.
+  append_colon_to_layer_header: false
   dark_mode: false
-  n_columns: 2 # 9 layers - lay them out 2-wide instead of one long column
-  separate_combo_diagrams: false
-  combo_diagrams_scale: 2
-  inner_pad_w: 2.0
-  inner_pad_h: 2.0
-  outer_pad_w: 30.0
-  outer_pad_h: 56.0
-  line_spacing: 1.2
-  arc_radius: 6.0
-  append_colon_to_layer_header: true
-  small_pad: 2.0
-  legend_rel_x: 0.0
-  legend_rel_y: 0.0
-  draw_key_sides: false
-  key_side_pars:
-    rel_x: 0
-    rel_y: 4
-    rel_w: 12
-    rel_h: 12
-    rx: 4
-    ry: 4
-  svg_extra_style: ''
-  footer_text: ''
-  shrink_wide_legends: 7
-  style_layer_activators: true
-  glyph_tap_size: 14
+  footer_text: "dh083064-ai/delta-omega-zmk"
+  glyph_tap_size: 15
   glyph_hold_size: 12
   glyph_shifted_size: 10
-  glyphs: {}
-parse_config:
-  preprocess: true
-  skip_binding_parsing: false
-  # Friendly legends for this project's custom C/tri-state behaviors,
-  # which keymap-drawer can't resolve on its own the way it does native
-  # ZMK behaviors (&mo/&lt/&tog/&kp/hold-taps already render with the
-  # right layer names and tap/hold split with no map entry needed -
-  # these entries exist only for the ones keymap-drawer would otherwise
-  # print as raw "&behavior_name" text). Keys here are the exact raw
-  # binding string as keymap-drawer resolves it (per-sub-behavior for
-  # hold-taps, e.g. num_dance below is smart_num's *tap* side only - its
-  # hold side is &mo NUM, already native and untouched). If a behavior
-  # or a &rf target gets added/removed/renamed in delta_omega.keymap,
-  # update the matching entry (or add/remove one) here.
-  raw_binding_map:
-    # Rapid-fire (Gaming/MUTIL, all 14 targets): show the actual output
-    # key as the main legend, "RF" as a small secondary tag - same
-    # visual language as HRM's tap-main/hold-secondary split, so a
-    # rapid-fire key reads as "this is a Q, that also happens to
-    # rapid-fire" rather than leading with the internal behavior name.
-    "&rf Q": {tap: Q, hold: RF}
-    "&rf W": {tap: W, hold: RF}
-    "&rf E": {tap: E, hold: RF}
-    "&rf U": {tap: U, hold: RF}
-    "&rf G": {tap: G, hold: RF}
-    "&rf H": {tap: H, hold: RF}
-    "&rf X": {tap: X, hold: RF}
-    "&rf C": {tap: C, hold: RF}
-    "&rf B": {tap: B, hold: RF}
-    "&rf N": {tap: N, hold: RF}
-    "&rf N1": {tap: "1", hold: RF}
-    "&rf N2": {tap: "2", hold: RF}
-    "&rf N3": {tap: "3", hold: RF}
-    "&rf APOS": {tap: "'", hold: RF}
-    # Tri-state auto-exit layer toggles (combo_fn / combo_mouse): show
-    # the destination layer name plainly, matching how &tog/&mo/&lt
-    # already render for every other layer key.
-    "&smart_fn": FN
-    "&smart_mouse": MOUSE
-    # smart_num's *tap* side (double-tap = sticky NUM, single tap =
-    # num-word) - its hold side is a plain &mo NUM and already shows
-    # "NUM" natively, this just cleans up the tap label to match instead
-    # of the internal tap-dance behavior name.
-    "&num_dance": Num
-    # Gaming command state machine (Down-Down-A/Down-Down-Down -> 9/C):
-    # both keys' overwhelmingly common output is their plain key (Down,
-    # A) - the special combo only fires on a specific chained sequence -
-    # so that's the main legend, with a small "cmd" tag flagging that
-    # this position also participates in the gaming-command combo
-    # instead of naming the internal gcmd_down/gcmd_trigger behaviors.
-    "&gcmd_down": {tap: Down, hold: cmd}
-    "&gcmd_trigger A N9": {tap: A, hold: cmd}
-    # Gaming layer left outer thumb: alternates LALT/F8 each press (no
-    # single "main" output since which one comes out next depends on
-    # press parity) - show both targets compactly as the main legend,
-    # "Cleanse" as the small secondary tag for the alternator behavior.
-    "&cleanse_alt": {tap: Alt/F8, hold: Cleanse}
-    # gaming_ctrl_esc's tap side: presses LCTRL+RCTRL together for the
-    # duration of the physical press. Single label, not tap/hold split -
-    # this nests inside gaming_ctrl_esc's own hold-tap, whose hold slot
-    # already shows its real hold behavior (&kp ESC, native, untouched)
-    # and there's no third slot for a separate "L+R" secondary tag here.
-    "&ctrl_both": L+R Ctrl
-    # Alt+Tab window swapper (NAV layer): hold Alt, tap Tab repeatedly,
-    # release to commit - main legend names the actual gesture, "Swap"
-    # as the small secondary tag distinguishing it from a plain one-shot
-    # &kp LA(TAB).
-    "&swapper": {tap: Alt+Tab, hold: Swap}
-  sticky_label: sticky
-  toggle_label: toggle
-  tap_toggle_label: tap-toggle
-  trans_legend:
-    t: ��
-    type: trans
-  layer_legend_map: {}
-  mark_alternate_layer_activators: false
-  modifier_fn_map:
-    left_ctrl: Ctl
-    right_ctrl: Ctl
-    left_shift: Sft
-    right_shift: Sft
-    left_alt: Alt
-    right_alt: AltGr
-    left_gui: Gui
-    right_gui: Gui
-    keycode_combiner: '{mods}+{key}'
-    mod_combiner: '{mod_1}+{mod_2}'
-    special_combinations:
-      left_ctrl+left_alt+left_gui+left_shift: Hyper
-      left_ctrl+left_alt+left_shift: Meh
-  qmk_remove_keycode_prefix:
-  - KC_
-  qmk_keycode_map:
-    XXXXXXX: ''
-    'NO': ''
-    MINUS: '-'
-    MINS: '-'
-    EQUAL: '='
-    EQL: '='
-    LEFT_BRACKET: '['
-    LBRC: '['
-    RIGHT_BRACKET: ']'
-    RBRC: ']'
-    BACKSLASH: \
-    BSLS: \
-    NONUS_HASH: '#'
-    NUHS: '#'
-    SEMICOLON: ;
-    SCLN: ;
-    QUOTE: ''''
-    QUOT: ''''
-    GRAVE: '`'
-    GRV: '`'
-    COMMA: ','
-    COMM: ','
-    DOT: .
-    SLASH: /
-    SLSH: /
-    TILDE: '~'
-    TILD: '~'
-    EXCLAIM: '!'
-    EXLM: '!'
-    AT: '@'
-    HASH: '#'
-    DOLLAR: $
-    DLR: $
-    PERCENT: '%'
-    PERC: '%'
-    CIRCUMFLEX: ^
-    CIRC: ^
-    AMPERSAND: '&'
-    AMPR: '&'
-    ASTERISK: '*'
-    ASTR: '*'
-    LEFT_PAREN: (
-    LPRN: (
-    RIGHT_PAREN: )
-    RPRN: )
-    UNDERSCORE: _
-    UNDS: _
-    PLUS: +
-    LEFT_CURLY_BRACE: '{'
-    LCBR: '{'
-    RIGHT_CURLY_BRACE: '}'
-    RCBR: '}'
-    PIPE: '|'
-    COLON: ':'
-    COLN: ':'
-    DOUBLE_QUOTE: '"'
-    DQUO: '"'
-    DQT: '"'
-    LEFT_ANGLE_BRACKET: <
-    LABK: <
-    LT: <
-    RIGHT_ANGLE_BRACKET: '>'
-    RABK: '>'
-    GT: '>'
-    QUESTION: '?'
-    QUES: '?'
-  zmk_remove_keycode_prefix: []
-  zmk_keycode_map:
-    EXCLAMATION: '!'
-    EXCL: '!'
-    AT_SIGN: '@'
-    AT: '@'
-    HASH: '#'
-    POUND: '#'
-    DOLLAR: $
-    DLLR: $
-    PERCENT: '%'
-    PRCNT: '%'
-    CARET: ^
-    AMPERSAND: '&'
-    AMPS: '&'
-    ASTERISK: '*'
-    ASTRK: '*'
-    STAR: '*'
-    LEFT_PARENTHESIS: (
-    LPAR: (
-    RIGHT_PARENTHESIS: )
-    RPAR: )
-    EQUAL: '='
-    PLUS: +
-    MINUS: '-'
-    UNDERSCORE: _
-    UNDER: _
-    SLASH: /
-    FSLH: /
-    QUESTION: '?'
-    QMARK: '?'
-    BACKSLASH: \
-    BSLH: \
-    PIPE: '|'
-    NON_US_BACKSLASH: \
-    PIPE2: '|'
-    NON_US_BSLH: '|'
-    SEMICOLON: ;
-    SEMI: ;
-    COLON: ':'
-    SINGLE_QUOTE: ''''
-    SQT: ''''
-    APOSTROPHE: ''''
-    APOS: ''''
-    DOUBLE_QUOTES: '"'
-    DQT: '"'
-    COMMA: ','
-    LESS_THAN: <
-    LT: <
-    PERIOD: .
-    DOT: .
-    GREATER_THAN: '>'
-    GT: '>'
-    LEFT_BRACKET: '['
-    LBKT: '['
-    LEFT_BRACE: '{'
-    LBRC: '{'
-    RIGHT_BRACKET: ']'
-    RBKT: ']'
-    RIGHT_BRACE: '}'
-    RBRC: '}'
-    GRAVE: '`'
-    TILDE: '~'
-    NON_US_HASH: '#'
-    NUHS: '#'
-    TILDE2: '~'
-  zmk_combos: {}
-  zmk_preamble: '#define KEYMAP_DRAWER'
-  zmk_additional_includes: []
+  legend_rel_y: 1
+  outer_pad_w: 10
+  outer_pad_h: 10
+  small_pad: 4
+  # gruvbox palette + typography, adapted from urob's svg_style. Only
+  # the parts that actually apply to a plain per-layer diagram (this
+  # project only generates the equivalent of urob's base.svg, not the
+  # separate combo-corner overview.svg) are kept - the .tl/.tr/.bl/.br
+  # corner-label rules from the original are dropped since nothing here
+  # emits those classes. The two momentary-layer thumbs that exist on
+  # this board (Smart Num -> NUM at keypos-30, Enter -> NAV at
+  # keypos-33) get the same per-thumb hold-label coloring treatment
+  # urob applies to their own layer-access thumbs.
+  svg_extra_style: |
+    svg path { fill: inherit; }
+
+    svg.keymap {
+        --color-bg:      #7c6f64;
+        --color-key:     #fbf1c7;
+        --color-text:    #3c3836;
+        --color-ghost:   #928374;
+        --color-dendron: #d5c4a1;
+        --color-held:    #bdae93;
+
+        --color-nav:     #d79921;
+        --color-num:     #d65d0e;
+
+        fill: var(--color-text);
+        background-color: var(--color-bg);
+        font-family: Calibri, system-ui, sans-serif;
+        font-size: 16px;
+        font-kerning: normal;
+        text-rendering: optimizeLegibility;
+    }
+
+    text {
+        text-anchor: middle;
+        dominant-baseline: middle;
+        letter-spacing: 0.02em;
+    }
+
+    text.tap     { font-weight: 500; }
+    text.hold    { font-weight: 400; font-size: 13px; }
+    text.shifted { font-weight: 400; font-size: 11px; }
+    text.combo, text.left, text.right, text.tl, text.tr, text.bl, text.br { font-size: 10px; }
+
+    text.hold, text.bl, text.br    { text-anchor: middle; dominant-baseline: auto; }
+    text.shifted, text.tl, text.tr { text-anchor: middle; dominant-baseline: hanging; }
+    text.left, text.tl, text.bl    { text-anchor: start; }
+    text.right, text.tr, text.br   { text-anchor: end; }
+
+    text.layer-activator { text-decoration: underline; }
+    text.combo.hold, text.combo.shifted, text.combo.left, text.combo.right { font-size: 8px; }
+
+    text.label, text.footer {
+        fill: var(--color-key);
+        stroke: var(--color-bg);
+        stroke-width: 4;
+        paint-order: stroke;
+    }
+    text.label  { font-weight: bold; text-anchor: start; }
+    text.footer { text-anchor: end; dominant-baseline: auto; }
+
+    rect.key, rect.combo, rect.combo-separate { fill: var(--color-key); stroke-width: 0; }
+    rect.held, rect.combo.held                { fill: var(--color-held); }
+
+    path.combo { stroke: var(--color-dendron); stroke-width: 2; stroke-dasharray: 2, 3; opacity: 0.45; fill: none; }
+
+    .keypos-30 text.hold { fill: var(--color-num); }
+    .keypos-33 text.hold { fill: var(--color-nav); }
+
+    @media (prefers-color-scheme: dark) {
+        svg.keymap {
+            --color-bg:      #a89984;
+            --color-key:     #282828;
+            --color-text:    #ebdbb2;
+            --color-ghost:   #928374;
+            --color-dendron: #504945;
+            --color-held:    #665c54;
+
+            --color-nav:     #fabd2f;
+            --color-num:     #d65d0e;
+        }
+    }
