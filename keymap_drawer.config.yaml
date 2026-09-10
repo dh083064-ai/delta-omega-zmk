@@ -77,7 +77,13 @@ parse_config:
   trans_legend: { t: "", type: trans }
   # Shortens HRM hold-labels and a few other keycodes the same way
   # urob's config does (LALT/LCTRL/... -> Alt/Ctrl/...) - same
-  # behaviors/params as theirs, copied as-is.
+  # behaviors/params as theirs, copied as-is. Setting this field replaces
+  # keymap-drawer's own default zmk_keycode_map wholesale rather than
+  # merging with it (found the hard way: MINUS/EQUAL/ASTRK/DOT/etc. on
+  # the NUM layer's calculator row rendered as raw keycode names instead
+  # of symbols until this was fixed) - so the full default symbol map is
+  # kept below and urob's short-name overrides for mods/nav/media keys
+  # are added on top of it, not instead of it.
   zmk_keycode_map:
     LALT: Alt
     RALT: Alt
@@ -109,6 +115,72 @@ parse_config:
     C_VOL_DN: "Vol-"
     C_NEXT: Next
     C_PREV: Prev
+    # keymap-drawer's own defaults (dump-config), kept so plain symbol
+    # keycodes still render as symbols instead of their raw names.
+    EXCLAMATION: "!"
+    EXCL: "!"
+    AT_SIGN: "@"
+    AT: "@"
+    HASH: "#"
+    POUND: "#"
+    DOLLAR: $
+    DLLR: $
+    PERCENT: "%"
+    PRCNT: "%"
+    CARET: ^
+    AMPERSAND: "&"
+    AMPS: "&"
+    ASTERISK: "*"
+    ASTRK: "*"
+    STAR: "*"
+    LEFT_PARENTHESIS: (
+    LPAR: (
+    RIGHT_PARENTHESIS: )
+    RPAR: )
+    EQUAL: "="
+    PLUS: +
+    MINUS: "-"
+    UNDERSCORE: _
+    UNDER: _
+    SLASH: /
+    FSLH: /
+    QUESTION: "?"
+    QMARK: "?"
+    BACKSLASH: \
+    BSLH: \
+    PIPE: "|"
+    NON_US_BACKSLASH: \
+    PIPE2: "|"
+    NON_US_BSLH: "|"
+    SEMICOLON: ;
+    SEMI: ;
+    COLON: ":"
+    SINGLE_QUOTE: "'"
+    SQT: "'"
+    APOSTROPHE: "'"
+    APOS: "'"
+    DOUBLE_QUOTES: '"'
+    DQT: '"'
+    COMMA: ","
+    LESS_THAN: <
+    LT: <
+    PERIOD: .
+    DOT: .
+    GREATER_THAN: ">"
+    GT: ">"
+    LEFT_BRACKET: "["
+    LBKT: "["
+    LEFT_BRACE: "{"
+    LBRC: "{"
+    RIGHT_BRACKET: "]"
+    RBKT: "]"
+    RIGHT_BRACE: "}"
+    RBRC: "}"
+    GRAVE: "`"
+    TILDE: "~"
+    NON_US_HASH: "#"
+    NUHS: "#"
+    TILDE2: "~"
 
 draw_config:
   # Matches urob's own choices exactly - see draw/config.yaml in
