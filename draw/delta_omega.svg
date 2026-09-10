@@ -737,7 +737,8 @@ path.combo {
 </g>
 <g transform="translate(210, 28)" class="key keypos-3">
 <rect rx="6" ry="6" x="-28" y="-26" width="56" height="52" class="key"/>
-<text x="0" y="0" class="key tap"><tspan style="font-size: 88%">&amp;swapper</tspan></text>
+<text x="0" y="0" class="key tap">Alt+Tab</text>
+<text x="0" y="24" class="key hold">Swap</text>
 </g>
 <g transform="translate(270, 28)" class="key trans keypos-4">
 <rect rx="6" ry="6" x="-28" y="-26" width="56" height="52" class="key trans"/>
@@ -1885,7 +1886,8 @@ path.combo {
 </g>
 <g transform="translate(210, 196)" class="key keypos-30">
 <rect rx="6" ry="6" x="-28" y="-26" width="56" height="52" class="key"/>
-<text x="0" y="0" class="key tap"><tspan style="font-size: 64%">&amp;cleanse_a…</tspan></text>
+<text x="0" y="0" class="key tap">Alt/F8</text>
+<text x="0" y="24" class="key hold">Cleanse</text>
 </g>
 <g transform="translate(270, 196)" class="key keypos-31">
 <rect rx="6" ry="6" x="-28" y="-26" width="56" height="52" class="key"/>
@@ -1893,7 +1895,9 @@ path.combo {
 </g>
 <g transform="translate(360, 196)" class="key keypos-32">
 <rect rx="6" ry="6" x="-28" y="-26" width="56" height="52" class="key"/>
-<text x="0" y="0" class="key tap"><tspan style="font-size: 70%">&amp;ctrl_both</tspan></text>
+<text x="0" y="0" class="key tap">
+<tspan x="0" dy="-0.9em">L+R</tspan><tspan x="0" dy="1.2em">Ctrl</tspan>
+</text>
 <text x="0" y="24" class="key hold">ESC</text>
 </g>
 <g transform="translate(420, 196)" class="key keypos-33">

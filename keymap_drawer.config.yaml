@@ -96,6 +96,22 @@ parse_config:
     # instead of naming the internal gcmd_down/gcmd_trigger behaviors.
     "&gcmd_down": {tap: Down, hold: cmd}
     "&gcmd_trigger A N9": {tap: A, hold: cmd}
+    # Gaming layer left outer thumb: alternates LALT/F8 each press (no
+    # single "main" output since which one comes out next depends on
+    # press parity) - show both targets compactly as the main legend,
+    # "Cleanse" as the small secondary tag for the alternator behavior.
+    "&cleanse_alt": {tap: Alt/F8, hold: Cleanse}
+    # gaming_ctrl_esc's tap side: presses LCTRL+RCTRL together for the
+    # duration of the physical press. Single label, not tap/hold split -
+    # this nests inside gaming_ctrl_esc's own hold-tap, whose hold slot
+    # already shows its real hold behavior (&kp ESC, native, untouched)
+    # and there's no third slot for a separate "L+R" secondary tag here.
+    "&ctrl_both": L+R Ctrl
+    # Alt+Tab window swapper (NAV layer): hold Alt, tap Tab repeatedly,
+    # release to commit - main legend names the actual gesture, "Swap"
+    # as the small secondary tag distinguishing it from a plain one-shot
+    # &kp LA(TAB).
+    "&swapper": {tap: Alt+Tab, hold: Swap}
   sticky_label: sticky
   toggle_label: toggle
   tap_toggle_label: tap-toggle
