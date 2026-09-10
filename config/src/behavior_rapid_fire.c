@@ -28,6 +28,16 @@
 #include <zmk/behavior.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/keycode_state_changed.h>
+#include <zmk/events/layer_state_changed.h>
+
+/*
+ * Layer index for GAMING - must match delta_omega.keymap's own
+ * #define GAMING 7. That #define is local to the .keymap file's own
+ * preprocessing and not visible from this translation unit, so it's
+ * duplicated here the same way behavior_gaming_cmd.c duplicates
+ * GCMD_DOWN_POSITION/GCMD_TRIGGER_POSITION.
+ */
+#define RF_GAMING_LAYER 7
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -183,6 +193,52 @@ static int on_keymap_binding_released(struct zmk_behavior_binding *binding,
 
     return ZMK_BEHAVIOR_OPAQUE;
 }
+
+/*
+ * Force every currently-active slot fully released and reset in one
+ * pass. Only called from the GAMING layer-exit listener below - a
+ * genuine physical release always goes through
+ * on_keymap_binding_released instead, which this mirrors.
+ */
+static void rf_force_release_all(void) {
+    for (int i = 0; i < RF_MAX_POSITIONS; i++) {
+        struct rf_slot *slot = &rf_slots[i];
+        if (!slot->active && !slot->virtual_pressed) {
+            continue;
+        }
+        slot->active = false;
+        k_work_cancel_delayable_sync(&slot->up_work, &slot->up_sync);
+        k_work_cancel_delayable_sync(&slot->down_work, &slot->down_sync);
+        rf_send_release(slot);
+    }
+}
+
+/*
+ * Leaving GAMING entirely (e.g. the combo_gaming toggle) means every
+ * rapid-fire binding on this board stops being reachable at all - force
+ * any in-progress rapid-fire hold fully released right away, rather
+ * than leaving it (correctly, but not immediately) waiting on the
+ * eventual physical release event to unwind it. GAMING<->MUTIL
+ * transitions don't need this: ZMK resolves a position's release
+ * against whatever binding was active when it was pressed, so a
+ * rapid-fire key held across a GAMING<->MUTIL switch still gets its
+ * matching on_keymap_binding_released normally, same as every other
+ * held key on this board.
+ */
+static int rf_layer_state_changed_listener(const zmk_event_t *eh) {
+    const struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
+
+    if (ev == NULL || ev->layer != RF_GAMING_LAYER || ev->state) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    rf_force_release_all();
+
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(rapid_fire_layer_reset, rf_layer_state_changed_listener);
+ZMK_SUBSCRIPTION(rapid_fire_layer_reset, zmk_layer_state_changed);
 
 static const struct behavior_driver_api behavior_rapid_fire_driver_api = {
     .binding_pressed = on_keymap_binding_pressed,
