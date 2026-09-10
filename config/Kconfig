@@ -11,14 +11,18 @@ config ZMK_RAPID_FIRE_MAX_INTERVAL_MS
     range 5 1000
 
 config ZMK_RAPID_FIRE_TAP_MS
-    int "Rapid-fire virtual tap duration in milliseconds"
-    default 2
+    int "Rapid-fire break-pulse duration in milliseconds"
+    default 1
     range 1 100
     help
-      A 1ms virtual press is only as wide as a single USB 1000Hz polling
-      frame, leaving no margin for the host to reliably observe it. 2ms
-      costs nothing against the 20-26ms interval (repeat rate is set by
-      the interval, not this) but gives a full frame of headroom.
+      High-duty-cycle rapid-fire: the virtual key stays DOWN for nearly
+      the whole 20-26ms cycle and only pulses UP for this long right
+      before the next DOWN, so a fresh DOWN edge (and the game's own
+      key-repeat/rate-of-fire) still lands every cycle while reading as
+      "mostly held" in-game. 1ms is the minimum a USB 1000Hz polling
+      frame can distinguish - wide enough for the host to reliably see
+      the UP edge without eating into the DOWN time any more than
+      necessary.
 
 config ZMK_DEBOUNCE_TAP_COOLDOWN_MS
     int "Debounce-tap: minimum gap between fires on the same position"

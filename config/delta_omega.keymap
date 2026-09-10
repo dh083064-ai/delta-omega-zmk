@@ -808,16 +808,21 @@
         };
 
         /*
-         * Num: straight left-to-right 0-9 on the home row (A-position = 0
-         * through ;-position = 9), not urob's numpad layout - your own
-         * preference. HRM kept on the same 8 positions as everywhere else.
-         * Top/bottom rows free for future symbol/util keys.
+         * Num: left hand keeps its original straight 0-9 (A-G = 0-4,
+         * unchanged). Right hand rearranged into a LunaKey-Pico-style
+         * right-hand calculator block (verified layout, ported over as-is):
+         *   Y== U=7 I=8 O=9 P=*
+         *   H=. J=4 K=5 L=6 ;=-
+         *   N=0 M=1 ,=2 .=3 /=+
+         * HRM kept on J/K/L/; exactly as before (same mod, only the tap
+         * digit moved); H/Y/P/N/,// pick up plain &kp bindings since they
+         * were bare &trans before, not wrapped in HRM to begin with.
          */
         NUM {
             bindings = <
-&trans         &trans         &trans          &trans           &trans          &trans          &trans          &trans          &trans          &trans
-&hml LGUI N0    &hml LALT N1   &hml LCTRL N2   &hml LSHIFT N3   &kp N4          &kp N5          &hmr RSHIFT N6  &hmr RCTRL N7   &hmr RALT N8    &hmr RGUI N9
-&trans         &trans         &trans          &trans           &trans          &trans          &trans          &trans          &trans          &trans
+&trans         &trans         &trans          &trans           &trans          &kp EQUAL       &kp N7          &kp N8          &kp N9          &kp ASTRK
+&hml LGUI N0    &hml LALT N1   &hml LCTRL N2   &hml LSHIFT N3   &kp N4          &kp DOT         &hmr RSHIFT N4  &hmr RCTRL N5   &hmr RALT N6    &hmr RGUI MINUS
+&trans         &trans         &trans          &trans           &trans          &kp N0          &kp N1          &kp N2          &kp N3          &kp PLUS
                                                     &trans         &trans          &trans          &trans
             >;
         };
