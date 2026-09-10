@@ -35,8 +35,8 @@ parse_config:
     "&rf H": H
     "&rf X": X
     "&rf C": C
-    "&rf B": B
     "&rf N": N
+    "&rf SPACE": Spc
     "&rf N1": "1"
     "&rf N2": "2"
     "&rf N3": "3"

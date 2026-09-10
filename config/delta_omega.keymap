@@ -893,7 +893,7 @@
             bindings = <
 &kp F1         &kp F2         &kp F3          &kp F4           &kp F5          &kp F6          &kp F7          &trans          &kp F9          &kp F10
 &rf N1         &rf N2         &rf N3          &kp N4           &kp N5          &kp N6          &trans          &trans          &trans          &kp F11
-&kp N0         &kp F12        &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp F12
+&kp N0         &kp GRAVE      &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp F12
                                                     &trans         &trans          &trans          &trans
             >;
         };
