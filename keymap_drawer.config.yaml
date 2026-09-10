@@ -47,7 +47,55 @@ draw_config:
 parse_config:
   preprocess: true
   skip_binding_parsing: false
-  raw_binding_map: {}
+  # Friendly legends for this project's custom C/tri-state behaviors,
+  # which keymap-drawer can't resolve on its own the way it does native
+  # ZMK behaviors (&mo/&lt/&tog/&kp/hold-taps already render with the
+  # right layer names and tap/hold split with no map entry needed -
+  # these entries exist only for the ones keymap-drawer would otherwise
+  # print as raw "&behavior_name" text). Keys here are the exact raw
+  # binding string as keymap-drawer resolves it (per-sub-behavior for
+  # hold-taps, e.g. num_dance below is smart_num's *tap* side only - its
+  # hold side is &mo NUM, already native and untouched). If a behavior
+  # or a &rf target gets added/removed/renamed in delta_omega.keymap,
+  # update the matching entry (or add/remove one) here.
+  raw_binding_map:
+    # Rapid-fire (Gaming/MUTIL, all 14 targets): show the actual output
+    # key as the main legend, "RF" as a small secondary tag - same
+    # visual language as HRM's tap-main/hold-secondary split, so a
+    # rapid-fire key reads as "this is a Q, that also happens to
+    # rapid-fire" rather than leading with the internal behavior name.
+    "&rf Q": {tap: Q, hold: RF}
+    "&rf W": {tap: W, hold: RF}
+    "&rf E": {tap: E, hold: RF}
+    "&rf U": {tap: U, hold: RF}
+    "&rf G": {tap: G, hold: RF}
+    "&rf H": {tap: H, hold: RF}
+    "&rf X": {tap: X, hold: RF}
+    "&rf C": {tap: C, hold: RF}
+    "&rf B": {tap: B, hold: RF}
+    "&rf N": {tap: N, hold: RF}
+    "&rf N1": {tap: "1", hold: RF}
+    "&rf N2": {tap: "2", hold: RF}
+    "&rf N3": {tap: "3", hold: RF}
+    "&rf APOS": {tap: "'", hold: RF}
+    # Tri-state auto-exit layer toggles (combo_fn / combo_mouse): show
+    # the destination layer name plainly, matching how &tog/&mo/&lt
+    # already render for every other layer key.
+    "&smart_fn": FN
+    "&smart_mouse": MOUSE
+    # smart_num's *tap* side (double-tap = sticky NUM, single tap =
+    # num-word) - its hold side is a plain &mo NUM and already shows
+    # "NUM" natively, this just cleans up the tap label to match instead
+    # of the internal tap-dance behavior name.
+    "&num_dance": Num
+    # Gaming command state machine (Down-Down-A/Down-Down-Down -> 9/C):
+    # both keys' overwhelmingly common output is their plain key (Down,
+    # A) - the special combo only fires on a specific chained sequence -
+    # so that's the main legend, with a small "cmd" tag flagging that
+    # this position also participates in the gaming-command combo
+    # instead of naming the internal gcmd_down/gcmd_trigger behaviors.
+    "&gcmd_down": {tap: Down, hold: cmd}
+    "&gcmd_trigger A N9": {tap: A, hold: cmd}
   sticky_label: sticky
   toggle_label: toggle
   tap_toggle_label: tap-toggle
