@@ -1,2 +1,7 @@
 firmware_output/
 firmware_output_urob_test/
+
+# keymap-drawer's local venv (`just init`) - not committed, `draw/*.svg`
+# output is what actually gets tracked.
+.venv/
+draw/*.yaml

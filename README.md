@@ -1,5 +1,22 @@
 # Delta Omega ZMK — simplified 7-layer build
 
+## Keymap diagram
+
+![Delta Omega keymap](draw/delta_omega.svg)
+
+Generated straight from `config/delta_omega.keymap` with
+[keymap-drawer](https://github.com/caksoylar/keymap-drawer):
+
+```sh
+just init  # once, to set up the local Python venv
+just draw  # any time the keymap changes, to regenerate draw/delta_omega.svg
+```
+
+`just draw` reparses the real `.keymap` file every time - nothing here is
+hand-edited, so the diagram can't drift out of sync with the source as long
+as it's regenerated after a keymap change (this is local-only for now; no
+CI step re-generates it automatically yet).
+
 ## Layer map
 
 | # | Layer | Access |
