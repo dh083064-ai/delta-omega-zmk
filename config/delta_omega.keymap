@@ -706,13 +706,15 @@
         };
 
         /*
-         * Both outer thumbs together: toggle the Gaming layer on/off. Also
-         * active on Gaming itself so the same chord exits it. Deliberately
-         * far-apart positions so it can't fire by accident while typing.
+         * Z + / together: toggle the Gaming layer on/off. Also active on
+         * Gaming itself so the same chord exits it. Both outer thumbs
+         * (30/33) were too unreliable to land even at 100ms - moved to
+         * the two bottom-row corner keys instead, still far apart enough
+         * to not fire by accident while typing.
          */
         combo_gaming {
             timeout-ms = <100>;
-            key-positions = <30 33>;
+            key-positions = <20 29>;
             layers = <KOR ENG GAMING>;
             bindings = <&tog GAMING>;
         };
