@@ -849,14 +849,14 @@
          *
          * Right-edge column (pos 9/19/29) is F10/F11/F12: the old F11
          * (pos20) and 0 (pos19) swap places, and old / (pos29) becomes
-         * F12 - the pre-existing F12 at pos21 is untouched, so F12 is
-         * reachable from both.
+         * F12. Pos21 (X) is a deliberate exception, kept as GRAVE - not
+         * matched to LunaKey Pico's F12 there.
          */
         MUTIL {
             bindings = <
 &kp F1         &kp F2         &kp F3          &kp F4           &kp F5          &kp F6          &kp F7          &trans          &kp F9          &kp F10
 &rf N1         &rf N2         &rf N3          &kp N4           &kp N5          &kp N6          &trans          &trans          &trans          &kp F11
-&kp N0         &kp F12        &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp F12
+&kp N0         &kp GRAVE      &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp F12
                                                     &trans         &trans          &trans          &trans
             >;
         };
