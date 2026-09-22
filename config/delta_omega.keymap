@@ -854,7 +854,7 @@
          * IJKL physical positions carry arrows (I=up, J=left, K=down,
          * L=right); the alpha letters I/J/K/L that displaced move to
          * ;/,/./  so they're still reachable. rf = rapid-fire (randomized
-         * hold-to-spam): Q W E U G H X C N T.
+         * hold-to-spam): Q W E U G H X C N T B.
          *
          * A (pos10) and Down (pos17) also drive the Down-Down-A/Down
          * command state machine (gcmd_trigger/gcmd_down, see
@@ -870,7 +870,7 @@
             bindings = <
 &rf Q          &rf W          &rf E           &kp R            &rf T           &kp Y           &rf U           &kp UP          &kp O           &kp P
 &gcmd_trigger A N9   &kp S    &kp D           &kp F            &rf G           &rf H           &kp LEFT        &gcmd_down      &kp RIGHT       &kp I
-&kp Z          &rf X          &rf C           &kp V            &kp B           &rf N           &kp M           &kp J           &kp K           &kp L
+&kp Z          &rf X          &rf C           &kp V            &rf B           &rf N           &kp M           &kp J           &kp K           &kp L
                                                     &cleanse_alt   &kp SPACE   &gaming_ctrl_esc ESC 0   &lt MUTIL RET
             >;
         };
