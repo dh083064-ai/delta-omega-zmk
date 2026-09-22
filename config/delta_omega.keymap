@@ -853,12 +853,15 @@
          * (pos20) and 0 (pos19) swap places, and old / (pos29) becomes
          * F12. Pos21 (X) is a deliberate exception, kept as GRAVE - not
          * matched to LunaKey Pico's F12 there.
+         * Pos24 (B): matches LunaKey Pico's live Remap state (not its
+         * older KC_LBRC source) - &gresc, ZMK's built-in Grave/Escape
+         * mod-morph: tap = Esc, Shift or GUI held + tap = ` (grave).
          */
         MUTIL {
             bindings = <
 &kp F1         &kp F2         &kp F3          &kp F4           &kp F5          &kp F6          &kp F7          &trans          &kp F9          &kp F10
 &rf N1         &rf N2         &rf N3          &kp N4           &kp N5          &kp N6          &trans          &trans          &trans          &kp F11
-&kp N0         &kp GRAVE      &kp MINUS       &kp EQUAL        &kp LBKT        &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp F12
+&kp N0         &kp GRAVE      &kp MINUS       &kp EQUAL        &gresc          &kp RBKT        &kp SEMI        &rf APOS        &kp COMMA       &kp F12
                                                     &trans         &trans          &trans          &trans
             >;
         };
