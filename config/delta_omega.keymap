@@ -776,21 +776,16 @@
         };
 
         /*
-         * Num: left hand keeps its original straight 0-9 (A-G = 0-4,
-         * unchanged). Right hand rearranged into a LunaKey-Pico-style
-         * right-hand calculator block (verified layout, ported over as-is):
-         *   Y== U=7 I=8 O=9 P=*
-         *   H=. J=4 K=5 L=6 ;=-
-         *   N=0 M=1 ,=2 .=3 /=+
-         * HRM kept on J/K/L/; exactly as before (same mod, only the tap
-         * digit moved); H/Y/P/N/,// pick up plain &kp bindings since they
-         * were bare &trans before, not wrapped in HRM to begin with.
+         * Num: matches LunaKey Pico's pcbang_gaming NUM layer exactly -
+         * no digit anywhere on the left hand (fully &trans, HRM included),
+         * no calculator symbols. Right hand: U=7 I=8 O=9 / J=4 K=5 L=6 /
+         * N=0 M=1 ,=2 .=3, every other cell &trans (Y/P/H/;// included).
          */
         NUM {
             bindings = <
-&trans         &trans         &trans          &trans           &trans          &kp EQUAL       &kp N7          &kp N8          &kp N9          &kp ASTRK
-&hml LGUI N0    &hml LALT N1   &hml LCTRL N2   &hml LSHIFT N3   &kp N4          &kp DOT         &hmr RSHIFT N4  &hmr RCTRL N5   &hmr RALT N6    &hmr RGUI MINUS
-&trans         &trans         &trans          &trans           &trans          &kp N0          &kp N1          &kp N2          &kp N3          &kp PLUS
+&trans         &trans         &trans          &trans           &trans          &trans          &kp N7          &kp N8          &kp N9          &trans
+&trans         &trans         &trans          &trans           &trans          &trans          &kp N4          &kp N5          &kp N6          &trans
+&trans         &trans         &trans          &trans           &trans          &kp N0          &kp N1          &kp N2          &kp N3          &trans
                                                     &trans         &trans          &trans          &trans
             >;
         };
