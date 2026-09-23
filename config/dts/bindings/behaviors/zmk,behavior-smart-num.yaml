@@ -1,0 +1,17 @@
+description: >
+  Smart Num single-state-machine (OFF/PENDING/MOMENTARY/STICKY). param1 is the
+  NUM layer index. bindings[0] is the num-word (urob/zmk-auto-layer) behavior
+  to delegate a plain short tap to; MOMENTARY and STICKY are managed directly
+  by this behavior via zmk_keymap_layer_activate/deactivate.
+
+compatible: "zmk,behavior-smart-num"
+
+include: one_param.yaml
+
+properties:
+  bindings:
+    type: phandles
+    required: true
+  tapping-term-ms:
+    type: int
+    default: 200

@@ -370,22 +370,20 @@
         };
 
         /*
-         * Tap: num-word (auto-off after one key) | Double-tap: sticky NUM
-         * layer | Hold: NUM layer.
+         * Tap: num-word (auto-off after one key, delegates to num_word
+         * below) | Double-tap: sticky NUM layer, toggles off on a second
+         * double-tap | Hold (or interrupted by another key while
+         * pressed): momentary NUM layer. Single custom state machine -
+         * see behavior_smart_num.c for the OFF/PENDING/MOMENTARY/STICKY
+         * transitions (replaces the previous hold-tap+tap-dance
+         * nesting, which had two independently-timed windows that could
+         * drift apart on rapid double-taps).
          */
         smart_num: smart_num {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "hold-preferred";
+            compatible = "zmk,behavior-smart-num";
+            #binding-cells = <1>;
             tapping-term-ms = <200>;
-            quick-tap-ms = <175>;
-            bindings = <&mo>, <&num_dance>;
-        };
-        num_dance: num_dance {
-            compatible = "zmk,behavior-tap-dance";
-            #binding-cells = <0>;
-            tapping-term-ms = <200>;
-            bindings = <&num_word NUM>, <&sl NUM>;
+            bindings = <&num_word>;
         };
 
         /*
@@ -749,7 +747,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &smart_num NUM 0   &kp SPACE   &magic_shift_kor LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM   &kp SPACE   &magic_shift_kor LSHFT 0   &lt NAV ENTER
             >;
         };
 
@@ -759,7 +757,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &smart_num NUM 0   &kp SPACE   &magic_shift LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM   &kp SPACE   &magic_shift LSHFT 0   &lt NAV ENTER
             >;
         };
 
