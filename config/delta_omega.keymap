@@ -660,48 +660,59 @@
             layers = <KOR ENG NAV NUM>;
             bindings = <&kp CARET>;
         };
+        /*
+         * NUM excluded (was KOR ENG NAV NUM): these vertical symbol combos
+         * share a first-key position with a SmartNum NUM digit
+         * (6/7/8/16/17/18/25/26/27/28). ZMK's combo module holds the
+         * physical key until every still-viable candidate on that position
+         * times out, so as long as NUM stayed a valid layer here every
+         * digit paid this combo's full 30ms even with no partner key
+         * pressed (measured on hardware). Symbol combos still work
+         * unchanged on KOR/ENG/NAV.
+         */
         combo_plus {
             timeout-ms = <30>;
             key-positions = <6 16>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp PLUS>;
         };
         combo_star {
             timeout-ms = <30>;
             key-positions = <7 17>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp ASTRK>;
         };
         combo_amps {
             timeout-ms = <30>;
             key-positions = <8 18>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp AMPS>;
         };
 
-        /* Right vertical combos (home+bottom per column): _ - / |. */
+        /* Right vertical combos (home+bottom per column): _ - / |.
+         * NUM excluded from all four - see comment above combo_plus. */
         combo_under {
             timeout-ms = <30>;
             key-positions = <15 25>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp UNDER>;
         };
         combo_minus {
             timeout-ms = <30>;
             key-positions = <16 26>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp MINUS>;
         };
         combo_fslh {
             timeout-ms = <30>;
             key-positions = <17 27>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp FSLH>;
         };
         combo_pipe {
             timeout-ms = <30>;
             key-positions = <18 28>;
-            layers = <KOR ENG NAV NUM>;
+            layers = <KOR ENG NAV>;
             bindings = <&kp PIPE>;
         };
 
