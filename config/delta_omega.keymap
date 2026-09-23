@@ -376,7 +376,7 @@
         smart_num: smart_num {
             compatible = "zmk,behavior-hold-tap";
             #binding-cells = <2>;
-            flavor = "balanced";
+            flavor = "hold-preferred";
             tapping-term-ms = <200>;
             quick-tap-ms = <175>;
             bindings = <&mo>, <&num_dance>;
