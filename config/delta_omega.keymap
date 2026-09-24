@@ -390,14 +390,20 @@
          * Magic Shift: hold = Shift. Tap = sticky-Shift, unless the prior
          * key was a letter within 1200ms, in which case tap repeats that
          * letter's last output instead (shift_repeat) - Caps Word on
-         * Shift+tap.
+         * Shift+tap. Single custom state machine (see
+         * behavior_magic_shift.c), not a hold-tap - a hold-tap here would
+         * capture the interrupting key's raw event and replay it once
+         * decided, which is the exact trigger pattern behind zmkfirmware/
+         * zmk#2001 and #986 (mod-tap modifiers getting stuck at the host,
+         * still open upstream, confirmed on both "balanced" and
+         * "hold-preferred"). This behavior never captures anything - it
+         * registers Shift immediately on interrupt and lets that key's
+         * own event bubble through untouched.
          */
         magic_shift: magic_shift {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "tap-preferred";
+            compatible = "zmk,behavior-magic-shift";
+            #binding-cells = <1>;
             tapping-term-ms = <280>;
-            quick-tap-ms = <175>;
             bindings = <&kp>, <&magic_shift_tap>;
         };
         magic_shift_tap: magic_shift_tap {
@@ -429,11 +435,9 @@
          * since there it's genuine English typing.
          */
         magic_shift_kor: magic_shift_kor {
-            compatible = "zmk,behavior-hold-tap";
-            #binding-cells = <2>;
-            flavor = "tap-preferred";
+            compatible = "zmk,behavior-magic-shift";
+            #binding-cells = <1>;
             tapping-term-ms = <280>;
-            quick-tap-ms = <175>;
             bindings = <&kp>, <&magic_shift_kor_tap>;
         };
         magic_shift_kor_tap: magic_shift_kor_tap {
@@ -747,7 +751,7 @@
 &kp Q          &kp W          &kp E           &kp R            &kp T           &kp Y           &kp U           &kp I           &kp O           &kp P
 &hml LGUI A     &hml LALT S    &hml LCTRL D    &hml LSHIFT F    &kp G           &kp H           &hmr RSHIFT J   &hmr RCTRL K    &hmr RALT L     &hmr RGUI SEMI
 &kp Z          &kp X          &kp C           &kp V            &kp B           &kp N           &kp M           &kp COMMA       &kp DOT         &kp SLASH
-                                                    &smart_num NUM   &kp SPACE   &magic_shift_kor LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM   &kp SPACE   &magic_shift_kor LSHFT   &lt NAV ENTER
             >;
         };
 
@@ -757,7 +761,7 @@
 &kp B          &kp L          &kp D           &kp C            &kp V           &kp J           &kp Y           &kp O           &kp U           &kp COMMA
 &hml LGUI N     &hml LALT R    &hml LCTRL T    &hml LSHIFT S    &kp G           &kp P           &hmr RSHIFT H   &hmr RCTRL A    &hmr RALT E     &hmr RGUI I
 &kp X          &kp Q          &kp M           &kp W            &kp Z           &kp K           &kp F           &kp APOS        &kp SEMI        &kp DOT
-                                                    &smart_num NUM   &kp SPACE   &magic_shift LSHFT 0   &lt NAV ENTER
+                                                    &smart_num NUM   &kp SPACE   &magic_shift LSHFT   &lt NAV ENTER
             >;
         };
 

@@ -1,0 +1,18 @@
+description: >
+  Magic Shift single-state-machine (OFF/PENDING/HELD), replacing zmk,behavior
+  -hold-tap for this key so it never captures another key's raw position
+  event. param1 is the modifier keycode (e.g. LSHFT), forwarded to
+  bindings[0] (a &kp) for the hold path. bindings[1] is the short-tap
+  behavior (a mod-morph reused unchanged, e.g. magic_shift_tap).
+
+compatible: "zmk,behavior-magic-shift"
+
+include: one_param.yaml
+
+properties:
+  bindings:
+    type: phandles
+    required: true
+  tapping-term-ms:
+    type: int
+    default: 280
